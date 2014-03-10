@@ -1,0 +1,998 @@
+---
+Packaging Pivotal One Products
+---
+
+This document is intended for product teams to learn how to package, distribute, and upgrade Pivotal One products across releases.
+
+## <a id='assumptions'></a>Assumptions ##
+
+This document will be difficult to follow unless you have a fully functional BOSH release of your product including a working manifest, release, and stemcell. You should also have a working knowledge of Pivotal Ops Manager and know, for example, what terms such as 'resources page' or 'product tile' refer to.
+
+## <a id='opsmanager'></a> What is Ops Manager? ##
+
+Pivotal Ops Manager is visual interface for installing and upgrading distributed software in the cloud. In its first , it is a vSphere Virtual Appliance that launches a Ruby on Rails application and orchestrates Pivotal's BOSH platform to manage virtual machines on vSphere. As of this writing, it can install Cloud Foundry, MySQL, Rabbit MQ, Pivotal HD, and any other product that has been packaged as a BOSH release.
+
+
+## <a id='package'></a> How should a product be packaged? ##
+
+The Ops Manager team refers to a packaged product as a "product zip" because it is archived using .zip format. The extension, however, should be .pivotal, to prevent users from extracting the .zip. The contents of that archive are the following top-level directories:
+
+## <a id='stemcells'></a> Product Package - Stemcells Directory ##
+The stemcells directory contains stemcells for your release. 
+
+## <a id='releases'></a> Product Package - Releases Directory ##
+
+The releases directory contains your product's release file. This is created using the BOSH command  bosh create release --with-tarball.  Note that even though the metadata example below appears to support specifying an array of multiple releases, some internal assumptions in Ops Manager still assume that your product zip will only come with a single release. In the future we plan to be able to support multiple BOSH releases in a product zip.
+
+## <a id='metadata'></a> Product Package - Product Templates ##
+
+The metadata directory contains a yaml file, named whatever you wish, with the product template that Ops Manager needs to prompt the user and do an install. This product template references your release and stemcell, creates the user input forms, and generates a BOSH manifest when a user clicks Apply Changes or Install in Ops Manager.
+
+Note: Archiving folders as subdirectories of other folders is not supported.
+
+To understand how to author product templates / metadata, let's look at an example and explain the elements of interest.
+
+```yaml
+
+---
+name: p-redis                                              # [1]
+product_version: 1.0.0.6                                   # [1]
+metadata_version: "1.1"                                    # [2]
+stemcell:                                                  # [3]
+  name:    bosh-vsphere-esxi-ubuntu
+  file:    bosh-stemcell-1657-ubuntu.tgz
+  version: "1657"
+  md5:     b6e99fe35f32437322a8d7326e8518d7
+compiled_package:                                          # [4]
+  name:    redis
+  file:    redis-0.2-dev-ubuntu-1657.tgz
+  version: 0.2-dev
+  md5:     abb919f6d6d7a212b1bf764941830f3e
+releases:
+  - name:    redis
+    file:    redis-0.2-dev.tgz
+    version: 0.2-dev
+    md5: ec3d77785e8878ef4f518e36d5ed66e0
+label: Redis
+description: Redis is a key-value store that ...
+image: iVBORw0KGgoAAAANSUhEUgAAAG                          # [5]
+rank: 1
+
+form_types:                                                # [6]
+  - name: Redis
+    label: Redis
+    description: This is my little Redis
+    property_inputs:                                       # [7]
+      - reference: redis.password
+
+job_types:                                                 # [8]
+  - name: redis
+    label: redis
+    resource_label: redis label for resource page
+    description:  redis is a key value store
+    template: redis
+
+    resource_definitions:                                  # [9]
+      - name: ram
+        type: integer
+        label: RAM
+        configurable: true
+        default: 1024
+
+      - name: ephemeral_disk
+        type: integer
+        label: Ephemeral Disk
+        configurable: true
+        default: 2048
+
+      - name: persistent_disk
+        type: integer
+        label: Persistent Disk
+        configurable: true
+        default: 3072
+
+      - name: cpu
+        type: integer
+        label: CPU
+        configurable: true
+        default: 1
+
+    static_ip: 0                                           # [10]
+    dynamic_ip: 1    
+    max_in_flight: 1                                       # [12]
+    serial: false                                          # [13]
+
+    instance_definitions:
+      - name: instances
+        type: integer
+        label: Instances
+        configurable: true                                 # [11]
+        default: 1
+
+    property_blueprints:                                   # [15]
+      - name: vm_credentials
+        type: salted_credentials
+        label: VM credentials
+        default:
+          identity: vcap
+     - name: password
+        type: secret
+        label: password
+        description: It is a secret
+        configurable: true
+        optional: true                                     # [14]
+
+    manifest: |                                            # [16]
+      redis.password: (( password.secret ))
+
+  - name: compilation
+    label: compilation
+    resource_label: compilation
+    description: compilation
+
+    resource_definitions:
+      - name: ram
+        type: integer
+        label: RAM
+        configurable: true
+        default: 1_024
+
+      - name: ephemeral_disk
+        type: integer
+        label: Ephemeral Disk
+        configurable: true
+        default: 2_048
+
+      - name: persistent_disk
+        type: integer
+        label: Persistent Disk
+        configurable: true
+        default: 8_192
+
+      - name: cpu
+        type: integer
+        label: CPU
+        configurable: true
+        default: 1
+
+    static_ip: 0
+    dynamic_ip: 1
+    max_in_flight: 1
+
+    instance_definitions:
+      - name: instances
+        type: integer
+        label: Instances
+        default: 1
+```
+
+1. name and product_version: These uniquely identify a product. Ops Manager allows "upgrades" between products with the same name in the metadata, and different product_versions.
+2. metadata_version: Every release of Ops manager expects a certain metadata schema. We are currently at 1.1.
+3. stemcell: refers to the stemcell you placed in the stemcells directory (also applies to releases)
+4. compiled_package: Optional. You can include compiled packages in the compiled_packages directory for faster install.
+5. image: A base64 encoded version of the logo for your image.
+6. form_types: Each form that is displayed for user input is generated from a form type.
+7. property_input: An HTML input for a form is a reference to a property_blueprint on a job_type (see below).
+8. job_types: A list of the jobs that correspond with the job names in your BOSH manifest.
+9. resource_definitions: These are the sections that create the sizing table in Ops Manager's resource page. Note: CPU must be a power of 2.
+10. static_ip / dynamic_ip: Corresponds to the BOSH setting for a job's ip allocation. If static_ip is 0, dynamic_ip must be 1 and vice versa. You should try and use dynamic_ip when possible.
+11. configurable: Must be true for user to edit, otherwise it's disabled in the table or form.
+12. max_in_flight: Can be either a number or a ratio marked by a '%' percentage symbol.
+13. serial: true/false. If false this job will be deployed in parallel with other jobs.
+14. optional: true/false. true means the value can be nil/blank. Defaults to false if this key is not specified.
+15. property_blueprints: There are two kinds of blueprints. Property blueprints, their settings, types and defaults are further explored in the Types secion.
+16. manifest: Properties that you need to put in your BOSH manifest, underneath the appropriate job, are created here. This is how the form_type's value is passed to the manifest (see example to the left). For more information on passing variables as property values, refer to the Manifest section.
+
+
+## <a id="blueprints"></a> More on Product Templates - Blueprints ##
+
+Specifying the type of a property blueprint determines how the field shows up in the UI. It also determines what validation gets done when the user submits a form. Certain types have special features, e.g. you can specify min/max constraints for integer types, and you can have the various credential types be auto-generated.
+
+For a type to show up in the UI it must be configurable.
+
+For each type, one or many accessors will below. It will be clear how to use these types when we look at manifest snippets.
+
+### string
+
+Renders as a text field if configurable.
+
+Accessor: value
+
+### integer
+
+Renders as a text field if configurable. These property definitions allow you to additionally specify constraints as follows:
+
+```yaml
+name: my-prop 
+type: integer 
+label: Foo 
+constraints: 
+  min: 200 
+  max: 300
+  power_of_two: true
+```
+
+You don't need to specify constraints, and if you do, you can specify either min, or max, or both. The power_of_two constraint should be used for the cpu resource definition for products deployed on vSphere.
+
+Accessor: value
+
+### boolean
+
+Renders as a checkbox if configurable.
+
+Accessor: value
+
+### ca_certificate
+
+Specially created for Rabbit because of the way SSL is done with Rabbit clusters. Renders as a textarea if configurable.
+
+Accessor: value
+
+### domain
+
+Used for things like foo.bar.com. Renders as a text field if configurable.
+
+Accessor: value
+
+### email
+
+Renders as a text field if configurable. Validates that it's a sensible email address, e.g. foo@bar.com
+
+Accessor: value
+
+### email_credentials
+
+Renders as a pair of text fields as configurable, where the second field will be ******'d out.
+
+Accessors: identity, password
+
+### host_mapping
+
+Renders as textarea. Parses and validates as host mappings.
+
+Accessors: value
+
+### http_url
+
+Full URL with http or https protocol. Renders as text field.
+
+Accessors: value
+
+### ip_address
+
+e.g. 1.2.3.4. Renders as text field.
+
+Accessor: value
+
+### ip_ranges
+
+Comma-separated list of single IP addresses and IP ranges of the form 1.2.3.4-1.2.3.200. Renders as text input.
+
+Accessor: value, parsed_ip_ranges (array)
+
+### multi_select_options
+
+Renders a list of checkboxes (kind of like a multi-boolean). When giving a property definition this type, you must also specify a list of options as follows:
+
+```yaml
+Same: my-prop type: multi_select_options label: Foo options: - name: checkbox1 label: Checkbox 1 - name: checkbox2 label: Checkbox 2 - name: checkbox3 label: Checkbox 3
+```
+
+The value of such a property, that you'll have access to in the manifest parts of your metadata, will be an array of the names of the checked boxes.
+
+Accessor: value (array of strings)
+
+### network_address_list
+
+Comma separated list of network addresses
+
+Accessor: value, parsed_network_addresses (array)
+
+### network_address
+
+IP address, domain, or single host-name. Renders as a text field.
+
+Accessor: value
+
+### network_address_port_pair
+
+Renders as two text fields, the first one is validates as a network address, and the second as a port (i.e. an integer between 0 and 65535).
+
+Accessor: address, port
+
+### port
+
+Integer between 0 and 65535. Renders as text field.
+
+Accessor: value
+
+### rsa_cert_credentials
+
+A triple of private key, cert, and csr. If configurable, then in the UI it only renders a field for the private key and cert (both as textareas).
+
+Accessors: public_key_pem, cert_and_private_key_pems
+
+### rsa_pkey_credentials
+
+Just an RSA private key. Not supported in UI, so don't make it configurable.
+
+Accessors: public_key_pem, private_key_pem
+
+### salted_credentials
+
+A triple of identity, password, and salt. Not supported in UI, so don't make it configurable.
+
+Accessors: sha512_hashed_password, identity, salt, password
+
+### simple_credentials
+
+A pair of identity and password. Any strings will do. Renders as two text fields in the UI, with the password one being ******'d out.
+
+Accessors: identity, password
+
+### secret
+
+A string that renders as a single password text input
+
+### smtp_authentication
+
+Renders as a dropdown where you can select from 'plain', 'login', and 'cram_md5'. Specifically for Console, as this gets passed on to ActionMailer.
+
+Accessor: value
+
+## <a id="random"></a> More on Product Templates - Types with Random Values ##
+
+You may wish to have some properties randomly generated rather than given by the user.  Currently this behaviour is supported for the various _credentials types. To trigger auto-generation, the property_definition must be non-configurable. All of these types are "compound values" in the sense that they are made up of more than one basic thing, e.g. email_credentials is made up of an identity (email) and password. Auto-generation can be used to generate just part of a set of credentials when combined with partially specified default values.  For example, a property blueprint like the following:
+
+    property_blueprints:
+      - name: vm_credentials
+        type: salted_credentials
+        label: VM credentials
+    configurable: false
+        default:
+          identity: vcap
+
+Has its salt and password auto-generated, but not its identity.
+
+### email_credentials
+
+Consists of identity and password. password can be auto-generated at deploy-time, but identity will not, so if you want the password auto-generated, specify a default for the identity.
+
+### rsa_cert_credentials
+
+Generates a valid RSA private key, a CSR, and a self-signed cert. All in PEM format.
+
+### rsa_pkey_credentials
+
+Generates a valid RSA private key (and there's a helper method to access the public key if needed)
+
+### salted_credentials
+
+Generates an identity, salt, and password.
+
+### simple_credentials
+
+Generates an identity and password.
+
+### secret
+
+Generates a password.
+
+
+## <a id='manifestsnips'></a> More on Product Templates - Manifest Snippets
+
+When a user clicks the Install or Apply Changes buttons in Ops Manager, a BOSH deployment manifest is generated and a BOSH deploy begins.
+
+A BOSH manifest includes a number of properties for each job. These come from the job_types in your product template, but the values the user entered are evaluated from the accessors listed in the table above. You can also create properties using the manifest section of your product template, which is most common for things that are neither entered by the user nor autogenerated.
+
+To refer to things that were either entered by a user, or auto generated, you can use a special reference syntax, which the Ops Manager team refers to as "spiff syntax." Please note that this is not the same as the spiff command line tool many of the other teams are using to generate manifests, it simply has a syntax that looks vaguely like spiff syntax.  You can also use Ruby's ERB syntax, but requires you to know something about the evaluation context and Ops Manager's internal object graph.  It is not recommended that anyone use ERB.
+
+You can do the following things with spiff-like syntax:
+
+```yaml
+
+job_types:
+  - name: other_job
+    property_blueprints:
+      - name: creds
+        type: simple_credentials
+  - name: foo
+    property_blueprints:
+      - name: bar
+        type: simple_credentials
+        configurable: true
+      - name: baz
+        type: integer
+        configurable: true
+    manifest: |
+      something:
+        something_else: (( bar.identity )) # this access the identity access on the "bar" 
+       # property on this job (namely "foo")
+        blah: (( bar.password ))
+        hi: (( baz.value ))
+      networkstuff:
+        my_ip: (( first_ip ))           # this access the first IP allocated to this job
+        bobs_ip: (( .other_job.first_ip ))  # the leading . means to go up a level and find
+                        # a different job in this metadata, namely
+                        # "other_job", and then ask it for things such as
+                        # first_ip or an accessor on some property
+        bobs_password: (( .other_job.creds.password ))
+      stuff_i_need_from_other_deployment:
+        runtime_uaa_ip: (( ..cf.uaa.first_ip )) # two leading .. means to go up two levels and
+                             # find a different product, namely "cf"
+```
+
+## <a id='dependecies'></a> More about Product Templates - Dependency Management
+
+If your product relies on other products, or you have specific jobs that rely on other products, you need to specify this in your product template. By creating a dependency, you will be warning users that they must meet prerequisites before installing. If the dependency is at a job level, and the user sets the number of instances to '0', there will be no dependency enforced.
+
+Service brokers are a great example of why dependencies could be set at the job level. Service brokers have no purpose other than being used with Elastic Runtime, and they are tied to specific releases of the Cloud Controller. By setting dependency in the broker, and setting the number of instances to zero, a user could use the service independently without having to worry about it functioning with Elastic Runtime.
+
+You should specify provides_product_version in your product template, even though it appears somewhat redundant as "name" and "product_version" capture the same information. Additionally, you may use requires_product_versions to depend on something else.  This can be specified at the top-level of a product template, implying the entire product depends on another one; or it can be specified at an individual job_type level.
+
+Here's how this looks in Elastic Runtime's product template:
+
+```yaml
+---
+name: cf
+product_version: 1.0.0.1
+metadata_version: "1.1"
+stemcell:
+  name: bosh-vsphere-esxi-ubuntu
+  version: "1266"
+  file: bosh-stemcell-1266-vsphere-esxi-ubuntu.tgz
+  md5: e1cbb680bee9eda8ba7e81ff0b3421a8
+releases:
+  - name: cf
+    version: "147.20-dev"
+    file: cf-147.20-dev.tgz
+    md5: 6b36ae7d613e5857447d789717f598ce
+provides_product_versions:
+  - name: cf
+    version: 1.0.0.1
+requires_product_versions:
+  - name: microbosh
+    version: "~> 1.0"
+```
+
+Here's how to create dependencies by job:
+
+```yaml
+job_types:
+  - name: database-server
+    label: My DB Server
+    resource_label: My DB Server
+    description: Multi-tenant DB server.
+    template: db-server
+    requires_product_versions:
+       - name: cf
+         version: "~> 1.0"
+```
+
+## <a id='migrations'></a>Product Package - content_migrations directory ##
+
+The content migrations directory contains yaml files that migrate installation data for products they previously installed. As of this writing we are within the 1.x.x.x release cycle, and thus all previously released product installations should be migratable to the next. If you change the product template structure, like add, edit, or delete a job_type, or property_blueprint, you will need to create a content_migration so that the customer's installation can migrate to these new settings.
+
+## <a id='compiledpackages'>Product Package - compiled_packages directory ##
+
+BOSH offers a new compiled feature as of December 2013. This feature will prevent BOSH from spending time booting compilation VMs to compile packages for a deployment. 
+
+Login to the Ops Manager Virtual Machine, sudo to root and run the following:
+
+```
+$ cd /home/tempest-web/tempest/web
+$ BUNDLE_GEMFILE=bosh.Gemfile bundle exec bosh target 172.16.66.17
+$ BUNDLE_GEMFILE=bosh.Gemfile bundle exec bosh deployments
++-------------------------+--------------+-------------------------------+
+| Name                    | Release(s)   | Stemcell(s)                   |
++-------------------------+--------------+-------------------------------+
+| cf-2a8c2e075b8b84b46b5c | cf/154.3-dev | bosh-vsphere-esxi-ubuntu/1471 |
++-------------------------+--------------+-------------------------------+
+$ BUNDLE_GEMFILE=bosh.Gemfile bundle exec bosh export compiled_packages cf/154.3-dev bosh-vsphere-esxi-ubuntu/1471 /tmp
+```
+
+## <a id='install_file'></a> Understanding the Installation file ##
+
+Pivotal Ops Manager has two types of YAML files it cares about: (1) product templates and (2) an "installation file". Product templates are authored by you. It is used by Ops Manager to create forms and get user input. This file is never altered as a result of user input.  The installation file is where all the user-entered data is stored, along with any auto-generated values such as non-configurable credentials, and IPs allocated to jobs.  The job_types and property_blueprints of the product template files inform what the jobs and properties look like in the installation file.  At install time, BOSH manifests are generated by first creating a template out of some boilerplate that Ops Manager provides and the "manifest" sections of the job_types in your product templates, and then rendering that template using values from the installation file.
+
+Before you learn how to write content migrations, you must understand the structure of the installation file, as this is what you are migrating. You are not migrating the product template that you authored. This is a source of confusion for most.
+
+To understand what the installation file looks like, you can login to your Ops Manager, decrypt, and view /var/tempest/workspaces/default/installation.yml
+
+This file is encrypted using the login password for the Ops Manager's admin user. You can decrypt it using this script as follows:
+
+```
+$ sudo wget http://bit.ly/1cW8tY7
+$ mv 1cW8tYz eos
+$ sudo ruby eos decrypt <admin_password> installation.yml decrypted.yml
+```
+
+After decrypting the installation metadata, you will see something like the following:
+
+```yaml
+---
+installation_version: !binary |-
+  MS4x
+infrastructure:
+  type: vsphere
+  file_system:
+    microbosh_vm_folder: pivotal_cf_vms_1da14f53e678361b2c32
+    microbosh_template_folder: pivotal_cf_templates_1da14f53e678361b2c32
+    microbosh_disk_path: pivotal_cf_disk_1da14f53e678361b2c32
+components:
+- type: microbosh
+  guid: microbosh-15282863e97a58c4507a
+  installation_name: microbosh-15282863e97a58c4507a
+  product_version: 1.1.0.0
+  jobs:
+  - type: director
+    guid: director-9fb5c60aed802815ef0d
+    installation_name: director
+    instances:
+    - definition: instances
+      value: 1
+    resources:
+    - definition: ram
+      value: 3072
+    - definition: ephemeral_disk
+      value: 16384
+    - definition: persistent_disk
+      value: 20480
+    - definition: cpu
+      value: 4
+    properties:
+    - definition: vm_credentials
+      value:
+        identity: vcap
+        salt: !binary |-
+          MjMwOGU2MmU1YjJjNDE4ZQ==
+        password: !binary |-
+          N2Q0OGI0NWM5ZmZhYzMwYg==
+    - definition: agent_credentials
+      value:
+        identity: vcap
+        password: !binary |-
+          ODc3MzNmODllMjVlNDI2NGU5ZDU=
+    - definition: director_credentials
+      value:
+        identity: director
+        password: !binary |-
+          MjNkMjMwZTdlNTBiZDcxZDAyZDc=
+    - definition: nats_credentials
+      value:
+        identity: nats
+        password: !binary |-
+          ZGZkNTQ5ZGM1NjJkNjY2MmIxYzA=
+    - definition: redis_credentials
+      value:
+        identity: redis
+        password: !binary |-
+          Zjg1OTM1Yjc2ZDJmNzRjNjg3NmM=
+    - definition: postgres_credentials
+      value:
+        identity: postgres
+        password: !binary |-
+          MTY0ZjhlNDkzYTM4YjBlMjJlNzk=
+    - definition: blobstore_credentials
+      value:
+        identity: blobstore
+        password: !binary |-
+          Mzg5MDg5ZDU3ZDFkMjFjYzczOTY=
+    - definition: health_monitor_credentials
+      value:
+        identity: health_monitor
+        password: !binary |-
+          NGRjYTQ2Njk1MDYxNDYzOWUxYjU=
+    - definition: director_ssl
+      value:
+        private_key_pem: !binary |-
+    - definition: resurrector_enabled
+  properties:
+  - definition: infrastructure
+    value: vsphere
+  - definition: vcenter_ip
+    value: 172.16.66.3
+  - definition: login_credentials
+    value:
+      identity: root
+      password: vmware
+  - definition: network
+    value: VM Network
+  - definition: datacenter
+    value: pineapple-dc
+  - definition: cluster
+    value: pineapple-cl
+  - definition: datastore
+    value: pineapple-ds
+  - definition: resource_pool
+    value: gold
+  - definition: subnet
+    value: 172.16.66.0/23
+  - definition: reserved_ip_ranges
+    value: 172.16.66.1-172.16.67.1, 172.16.67.100-172.16.67.255
+  - definition: dns
+    value: 10.80.130.1
+  - definition: gateway
+    value: 172.16.66.1
+  - definition: ntp_servers
+    value: 10.80.130.1
+  ips:
+    director-9fb5c60aed802815ef0d:
+    - 172.16.67.2
+    dynamic_for_static:
+    - 172.16.67.3
+- type: redis
+  guid: redis-695b43f28ce9cf76610f
+  installation_name: redis-695b43f28ce9cf76610f
+  product_version: 1.0.0.6
+  jobs:
+  - type: redis
+    guid: redis-81af61fabd99bc1a1486
+    installation_name: redis
+    instances:
+    - definition: instances
+      value: 1
+    resources:
+    - definition: ram
+      value: 1024
+    - definition: ephemeral_disk
+      value: 2048
+    - definition: persistent_disk
+      value: 3072
+    - definition: cpu
+      value: 1
+    properties:
+    - definition: vm_credentials
+      value:
+        identity: vcap
+        salt: !binary |-
+          Yzk0ZGFmZDY4Nzc0MTc1OQ==
+        password: !binary |-
+          NDY5MjZjODhjNGQ1ZTcyNw==
+    - definition: credentials
+      value:
+        identity: matt
+        password: reider
+  - type: compilation
+    guid: compilation-2794aeafd991cbac844d
+    installation_name: compilation
+    instances:
+    - definition: instances
+      value: 1
+    resources:
+    - definition: ram
+      value: 1024
+    - definition: ephemeral_disk
+      value: 2048
+    - definition: persistent_disk
+      value: 8192
+    - definition: cpu
+      value: 1
+  ips:
+    redis-81af61fabd99bc1a1486:
+    - 172.16.67.44
+    compilation-2794aeafd991cbac844d:
+    - 172.16.67.45
+    dynamic_for_static: []
+```
+
+## <a id='upgrades'></a>How are Upgrades Packaged? ##
+
+When your team has a new release you must create a content migration. These migrations are yaml files with certain rules for updating the installation hash discussed in the previous section. This transformation uses a Ruby gem called Transmogrifier. The migration file must be placed in the content_migrations directory in the product zip.
+
+### Migrating the Product Version
+
+The first, and simplest, value that must be migrated is the product version. Say, for example, that your last release is 1.0.0.3 and you are going to release version 2.0.0.0 next week. Your last version's product template looks like this:
+
+```yaml
+---
+name: p-redis
+product_version: 1.0.0.3
+metadata_version: "1.1"
+
+A content_migration yaml to migrate this version to the new 2.0.0.0 release would look like this:
+
+product: redis
+installation_version: "1.1"
+to_version: "2.0.0.0"
+
+migrations:
+  - from_version: 1.0.0.3
+    rules:
+      - type: update
+        selector: "product_version"
+        to: "2.0.0.0"
+```
+
+Note: installation_version is the schema version of the installation.yml file, which contains an installation's state. This is not the same as the metadata version, which refers to the schema of the product template that you are authoring.
+
+If your customers have a couple of Redis versions released you can migrate more than one version with the same migration as follows:
+
+```yaml
+product: redis
+installation_version: "1.1"
+to_version: "2.0.0.0"
+
+migrations:
+  - from_version: 1.0.0.3
+    rules:
+      - type: update
+        selector: "product_version"
+        to: "2.0.0.0"
+  - from_version: 1.0.0.4
+    rules:
+      - type: update
+        selector: "product_version"
+        to: "2.0.0.0"
+```
+
+### Migrating Property Names and Types
+
+The example above, in which you modified a version number, uses the update type of migration. You can also use create and delete.
+
+### Example 1. Adding a New Property
+
+Imagine that your 2.0.0.0 Redis release has a new property called max_memory. In this case, all you need to do is add this property to your product template so that Ops Manager will display it and set it in any new installation BOSH manifests. You do not need a content_migration since the new installation file will be created when you click Apply Changes.
+
+```yaml
+    property_blueprints:
+...
+      - name: max_memory
+        type: string
+        label: max memory
+        description: Enter the Max Memory for the Redis Cache
+        configurable: true
+    default: "2mb"
+
+    manifest: |
+      redis.password: (( credentials.password ))
+      redis.max_memory: (( max_memory.value ))
+```
+
+### Example 2. Updating a Property Names
+
+Redis uses admin passwords, without user names. Our original product template has a property called credentials that uses a simple_credentials type. Unfortunately there was no simple_password type which just prompts for password (there will be soon). To refresh your memory:
+
+```yaml
+     property_blueprints:
+...
+      - name: credentials
+        type: simple_credentials
+        label: credentials
+        description: it is a secret
+        configurable: true
+
+    manifest: |
+      redis.password: (( credentials.password ))
+
+```
+
+Imagine the new type called simple_password was already available in Ops Manager. What would the steps be to migrate our password to this type?
+First, we would need to modify our product template to the different type, give it a new name, and reference it by that name. Our new product template would look like this:
+
+```yaml
+     property_blueprints:
+...
+      - name: redis_password # NEW NAME (was called 'credentials')
+        type: simple_password # NEW TYPE!
+        label: redis password
+        description: it is a secret
+        configurable: true
+
+    manifest: |
+      redis.password: (( redis_password.password )) # NEW REFERENCE!
+```
+
+Next, we would look at our installation file and see if there are things to migrate:
+
+```yaml
+ - definition: credentials # Hmmm.. this uses the old name!
+      value:
+        identity: matt # We don't need this, Redis never used it anyhow...
+        password: reider
+```
+
+Our Migration needs to change the name of property definition from credentials to redis_password it would also be cleaner to delete the identity property as well.
+
+Our complete migration file is as follows:
+
+```yaml
+---
+product: redis
+installation_version: "1.1"
+to_version: "2.0.0.0"
+
+migrations:
+  - product_version: 1.0.0.3
+    rules:
+      - type: update
+        selector: "product_version"
+        to: "2.0.0.0"
+      - type: update
+        selector: components.[name=redis].jobs.[name=redis].properties.[definition=credentials]
+     to: redis_password
+      - type: delete
+      components.[name=redis].jobs.[name=redis].properties.[definition=credentials].value.identity
+```
+
+## <a id='verifier'></a>Verifiers ##
+
+Product templates include two types of verifiers: form verifiers and install time verifiers. Most verifiers are built to check availability of resources and IP addresses or existence of network endpoints. If your product requires some kind of verifier, please let the team know so we can build it. Verifiers are not shown in the product template sections earlier in this document.
+
+### Form Verifiers
+
+Form verifiers run when a user saves a form. You name the verifier in the form_type section, under the name of the form. The following verifier checks that Elastic Runtime's router IP is free / available:
+
+```yaml
+  - name: router
+    label: Router IPs
+    description: "Enter the IP address(es) for the Cloud Foundry Router."
+    verifier:
+      name: Verifiers::StaticIpsVerifier
+    property_inputs:
+      - reference: router.static_ips
+```
+
+### Install Time Verifier Example
+
+Install time verifiers run when a user clicks the Apply Changes or Install buttons. Usually you will run the same verifiers at install or form save, but they are broken out in case there are exceptions.
+
+Here is an excerpt from the Elastic Runtime product template that verfies that the SSO Appliance, and SMTP servers, are available at the addresses the user entered:
+
+```yaml
+install_time_verifiers:
+  - name: Verifiers::SsoUrlVerifier
+    properties:
+      - saml_login.sso_url
+  - name: Verifiers::SmtpAuthenticationVerifier
+    properties:
+      - consoledb.smtp_address
+      - consoledb.smtp_port
+      - consoledb.smtp_helo_domain
+      - consoledb.smtp_credentials
+      - consoledb.smtp_authentication
+      - consoledb.smtp_enable_starttls_auto
+```
+
+## <a id='tips'></a> Tips and Tricks for Metadata Authors ##
+
+Authoring product templates currently lacks tooling and is not for the faint of heart. If you find that your product tempalate leads to 500 errors in the Ops Manager, you should start by validating that it can be parsed.
+
+### Checking your YAML
+
+```
+$ gem install psych
+$ irb
+> require 'psych'
+> contents = File.read('p-hd-tempest.yml')
+> Psych.load(contents)
+```
+
+If you get an error, such as "Psych::SyntaxError: mapping values are not allowed in this context at line 24" it means there is likely a problem with spacing, or formatting, at line 23 or 24 of your file.
+
+### SSH'ing into Ops Manager / Shortening the Feedback Cycle
+
+Product Teams have reported that the feedback cycle for product template changes is long. Changing your product template, uploading an entire product to Ops Manager, and watching it fail, can be frustrating. We are working to make this easier.
+
+One way to shorten the feedback cycle is possible by ssh'ing into the Ops Manager VM (username = tempest, password is whatever you set when you deployed the .ova). Once in the Ops Manager VM, you can edit product templates directly at /var/tempest-web/metadata.
+
+After editing metadata you must restart the Ops Manager web application.
+
+```
+$ sudo service tempest-web stop
+$ sudo service tempest-web start
+```
+
+### Restoring Previous Installation File
+
+There is an undocumented feature in Ops Manager to restore the previous version of the installation file's state, including all Stemcells and Releases that were part of that installation file. This should not be confused with restoring the installation (VMs) itself. To restore an installation's state browse to https://{your ops manager}/restore
+
+### Starting Fresh
+
+If your installation file seems corrupted for some reason, and you want to start over again without installing a new .ova, you can go into vCenter, kill any deployed VMs, and then clean all of the files from the directory /var/tempest/workspace.
+
+### Using the Ops Manager API
+
+Using CURL, it is possible to automate most of the actions possible via the Ops Manager web interface. To view the Ops Manager API documentation visit https://{Ops Manager}/docs
+
+### Automating Ops Manager deployment
+
+You can automate the deployment of an Ops Manager .ova to vSphere without using vCenter.
+
+```
+$ git clone git@github.com:pivotal-cf/installation.git
+$ cd installation/gems/vsphere_clients
+$ gem install vsphere_clients-*gem
+$ cd ../ova_manager
+$ gem install ova_manager-*gem
+```
+
+Once you have completed these steps you can write a script to both deploy an .ova as follows:
+
+```ruby
+require 'ova_manager'
+require 'vsphere_clients'
+
+OvaManager::Deployer.new({
+  host: "172.16.74.3",
+  user: "root",
+  password: "vmware"
+},{
+  datacenter: "mozzarella-dc",
+  cluster: "mozzarella-cl",
+  datastore: "mozzarella-ds",
+  network: "VM Network",
+  folder: "Matt",
+  resource_pool: ""
+}).deploy("/Users/mreider/Downloads/z.ova", {
+  ip: "172.16.74.150",
+  netmask: "255.255.254.0",
+  gateway: "172.16.74.1",
+  dns: "10.80.130.1",
+  ntp_servers: "10.80.130.1",
+  vm_password: "admin"
+})
+```
+
+The script to destroy an .ova looks like this:
+
+```ruby
+require 'ova_manager'
+require 'vsphere_clients'
+
+OvaManager::Destroyer.new("mozzarella-dc", {
+    host: "172.16.74.3",
+    user: "root",
+    password: "vmware"
+}).clean_folder("Matt")
+```
+
+## <a id='changes'></a> Changes from 1.0.0.1 to 1.1.0.0 ##
+ 
+The following changes were made between version 1.0.0.1 released in November of 2013 and 1.1.0.0 released in March 2014:
+
+### install_time_verifiers
+
+A product can now specify verifiers that can be run at install time (right after the user clicks the install button).
+
+The name of the verifier specifies the ruby class name of the verifier to run (look in the app/models/verifiers folder for available verifiers). The properties key specifies which properties are passed to the verifier to instantiate it.
+  
+### form_types
+
+Forms are now specified in the metadata with a form_type key. Job types are now just containers for data and the UI is drawn from the form_types key. Each form type has a name (programmer facing), label (end user facing), a description string.
+
+Forms can also optionally specify a verifier to run when the form is saved. They must also specify an array of property inputs that point to the properties in the jobs (ie. reference: job-name.property-name).
+
+### max_in_flight
+
+Job types must specify max_in_flight (integer or %)
+
+### property_blueprint rename
+
+property_definitions has been renamed to property_blueprints in job type
+
+### canaries
+
+The number of canaries (integer) can now be specified for a job_type
+
+### CPU as power of two
+
+CPU resource definition must specify a power_of_two constraint
+
+### Microbosh 1.1 features
+
+To take advantage of the following features, a product must specify a dependency on microbosh 1.1:
+
+* compiled_packages can be specified for a product
+* Product teams can specify jobs to deploy in parallel with serial: false
+
+Typed values:
+
+* Added network_address_list (comma separated list of network addresses)
+* Added secret (password field to replace credentials when identity is unnecessary).
+
+
+
+
+
+
