@@ -1,5 +1,5 @@
 ---
-Packaging Pivotal One Products
+title: Packaging Pivotal One Products
 ---
 
 This document is intended for product teams to learn how to package, distribute, and upgrade Pivotal One products across releases.
@@ -10,7 +10,7 @@ This document will be difficult to follow unless you have a fully functional BOS
 
 ## <a id='opsmanager'></a> What is Ops Manager? ##
 
-Pivotal Ops Manager is visual interface for installing and upgrading distributed software in the cloud. In its first , it is a vSphere Virtual Appliance that launches a Ruby on Rails application and orchestrates Pivotal's BOSH platform to manage virtual machines on vSphere. As of this writing, it can install Cloud Foundry, MySQL, Rabbit MQ, Pivotal HD, and any other product that has been packaged as a BOSH release.
+Pivotal Ops Manager is visual interface for installing and upgrading distributed software in the cloud. In its first, it is a vSphere Virtual Appliance that launches a Ruby on Rails application and orchestrates Pivotal's BOSH platform to manage virtual machines on vSphere. As of this writing, it can install Cloud Foundry, MySQL, Rabbit MQ, Pivotal HD, and any other product that has been packaged as a BOSH release.
 
 
 ## <a id='package'></a> How should a product be packaged? ##
@@ -18,11 +18,11 @@ Pivotal Ops Manager is visual interface for installing and upgrading distributed
 The Ops Manager team refers to a packaged product as a "product zip" because it is archived using .zip format. The extension, however, should be .pivotal, to prevent users from extracting the .zip. The contents of that archive are the following top-level directories:
 
 ## <a id='stemcells'></a> Product Package - Stemcells Directory ##
-The stemcells directory contains stemcells for your release. 
+The stemcells directory contains stemcells for your release.
 
 ## <a id='releases'></a> Product Package - Releases Directory ##
 
-The releases directory contains your product's release file. This is created using the BOSH command  bosh create release --with-tarball.  Note that even though the metadata example below appears to support specifying an array of multiple releases, some internal assumptions in Ops Manager still assume that your product zip will only come with a single release. In the future we plan to be able to support multiple BOSH releases in a product zip.
+The releases directory contains your product's release file. This is created using the BOSH command  `bosh create release --with-tarball`. Note that even though the metadata example below appears to support specifying an array of multiple releases, some internal assumptions in Ops Manager still assume that your product zip will only come with a single release. In the future we plan to be able to support multiple BOSH releases in a product zip.
 
 ## <a id='metadata'></a> Product Package - Product Templates ##
 
@@ -98,7 +98,7 @@ job_types:                                                 # [8]
         default: 1
 
     static_ip: 0                                           # [10]
-    dynamic_ip: 1    
+    dynamic_ip: 1
     max_in_flight: 1                                       # [12]
     serial: false                                          # [13]
 
@@ -203,11 +203,11 @@ Accessor: value
 Renders as a text field if configurable. These property definitions allow you to additionally specify constraints as follows:
 
 ```yaml
-name: my-prop 
-type: integer 
-label: Foo 
-constraints: 
-  min: 200 
+name: my-prop
+type: integer
+label: Foo
+constraints:
+  min: 200
   max: 300
   power_of_two: true
 ```
@@ -406,7 +406,7 @@ job_types:
         configurable: true
     manifest: |
       something:
-        something_else: (( bar.identity )) # this access the identity access on the "bar" 
+        something_else: (( bar.identity )) # this access the identity access on the "bar"
        # property on this job (namely "foo")
         blah: (( bar.password ))
         hi: (( baz.value ))
@@ -475,7 +475,7 @@ The content migrations directory contains yaml files that migrate installation d
 
 ## <a id='compiledpackages'>Product Package - compiled_packages directory ##
 
-BOSH offers a new compiled feature as of December 2013. This feature will prevent BOSH from spending time booting compilation VMs to compile packages for a deployment. 
+BOSH offers a new compiled feature as of December 2013. This feature will prevent BOSH from spending time booting compilation VMs to compile packages for a deployment.
 
 Login to the Ops Manager Virtual Machine, sudo to root and run the following:
 
@@ -948,7 +948,7 @@ OvaManager::Destroyer.new("mozzarella-dc", {
 ```
 
 ## <a id='changes'></a> Changes from 1.0.0.1 to 1.1.0.0 ##
- 
+
 The following changes were made between version 1.0.0.1 released in November of 2013 and 1.1.0.0 released in March 2014:
 
 ### install_time_verifiers
@@ -956,7 +956,7 @@ The following changes were made between version 1.0.0.1 released in November of 
 A product can now specify verifiers that can be run at install time (right after the user clicks the install button).
 
 The name of the verifier specifies the ruby class name of the verifier to run (look in the app/models/verifiers folder for available verifiers). The properties key specifies which properties are passed to the verifier to instantiate it.
-  
+
 ### form_types
 
 Forms are now specified in the metadata with a form_type key. Job types are now just containers for data and the UI is drawn from the form_types key. Each form type has a name (programmer facing), label (end user facing), a description string.
