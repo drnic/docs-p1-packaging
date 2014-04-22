@@ -24,7 +24,7 @@ The stemcells directory contains stemcells for your release.
 
 ## <a id='releases'></a> Product Package - Releases Directory ##
 
-The releases directory contains your product's release file. This is created using the BOSH command  `bosh create release --with-tarball`. Note that even though the metadata example below appears to support specifying an array of multiple releases, some internal assumptions in Ops Manager still assume that your product zip will only come with a single release. In the future we plan to be able to support multiple BOSH releases in a product zip.
+The releases directory contains your product's release file. This is created using the BOSH command `bosh create release --with-tarball`. Note that even though the metadata example below appears to support specifying an array of multiple releases, some internal assumptions in Ops Manager still assume that your product zip will only come with a single release. In the future we plan to be able to support multiple BOSH releases in a product zip.
 
 ## <a id='metadata'></a> Product Package - Product Templates ##
 
@@ -177,7 +177,7 @@ job_types:                                                 # [8]
 7. property\_input: An HTML input for a form is a reference to a property\_blueprint on a job\_type (see below).
 8. job\_types: A list of the jobs that correspond with the job names in your BOSH manifest.
 9. resource_definitions: These are the sections that create the sizing table in Ops Manager's resource page. Note: CPU must be a power of 2.
-10. static\_ip / dynamic_ip: Corresponds to the BOSH setting for a job's ip allocation. If static\_ip is 0, dynamic_ip must be 1 and vice versa. You should try and use dynamic\_ip when possible.
+10. static\_ip / dynamic\_ip: Corresponds to the BOSH setting for a job's IP allocation. If static\_ip is 0, dynamic\_ip must be 1 and vice versa. You should try and use dynamic\_ip when possible.
 11. configurable: Must be true for user to edit, otherwise it's disabled in the table or form.
 12. max\_in\_flight: Can be either a number or a ratio marked by a '%' percentage symbol.
 13. serial: true/false. If false this job will be deployed in parallel with other jobs.
@@ -277,7 +277,7 @@ Accessor: value, parsed\_ip\_ranges (array)
 Renders a list of checkboxes (kind of like a multi-boolean). When giving a property definition this type, you must also specify a list of options as follows:
 
 ```yaml
-Same: my-prop type: multi\_select\_options label: Foo options: - name: checkbox1 label: Checkbox 1 - name: checkbox2 label: Checkbox 2 - name: checkbox3 label: Checkbox 3
+Same: my-prop type: multi_select_options label: Foo options: - name: checkbox1 label: Checkbox 1 - name: checkbox2 label: Checkbox 2 - name: checkbox3 label: Checkbox 3
 ```
 
 The value of such a property, that you'll have access to in the manifest parts of your metadata, will be an array of the names of the checked boxes.
@@ -346,9 +346,9 @@ Accessor: value
 
 You may wish to have some properties randomly generated rather than given by the user.  Currently this behaviour is supported for the various \_credentials types. To trigger auto-generation, the property\_definition must be non-configurable. All of these types are "compound values" in the sense that they are made up of more than one basic thing, e.g. email\_credentials is made up of an identity (email) and password. Auto-generation can be used to generate just part of a set of credentials when combined with partially specified default values.  For example, a property blueprint like the following:
 
-    property\_blueprints:
-      - name: vm\_credentials
-        type: salted\_credentials
+    property_blueprints:
+      - name: vm_credentials
+        type: salted_credentials
         label: VM credentials
     configurable: false
         default:
@@ -475,7 +475,7 @@ job_types:
 
 The content migrations directory contains yaml files that migrate installation data for products they previously installed. As of this writing we are within the 1.x.x.x release cycle, and thus all previously released product installations should be migratable to the next. If you change the product template structure, like add, edit, or delete a job\_type, or property\_blueprint, you will need to create a content\_migration so that the customer's installation can migrate to these new settings.
 
-## <a id='compiledpackages'>Product Package - compiled\_packages directory ##
+## <a id='compiledpackages'></a>Product Package - compiled\_packages directory ##
 
 BOSH offers a new compiled feature as of December 2013. This feature will prevent BOSH from spending time booting compilation VMs to compile packages for a deployment.
 
@@ -493,7 +493,7 @@ $ BUNDLE_GEMFILE=bosh.Gemfile bundle exec bosh deployments
 $ BUNDLE_GEMFILE=bosh.Gemfile bundle exec bosh export compiled_packages cf/154.3-dev bosh-vsphere-esxi-ubuntu/1471 /tmp
 ```
 
-## <a id='install_file'></a> Understanding the Installation file ##
+## <a id='install-file'></a> Understanding the Installation file ##
 
 Pivotal Ops Manager has two types of YAML files it cares about: (1) product templates and (2) an "installation file". Product templates are authored by you. It is used by Ops Manager to create forms and get user input. This file is never altered as a result of user input.  The installation file is where all the user-entered data is stored, along with any auto-generated values such as non-configurable credentials, and IPs allocated to jobs.  The job\_types and property\_blueprints of the product template files inform what the jobs and properties look like in the installation file.  At install time, BOSH manifests are generated by first creating a template out of some boilerplate that Ops Manager provides and the "manifest" sections of the job\_types in your product templates, and then rendering that template using values from the installation file.
 
@@ -506,7 +506,7 @@ This file is encrypted using the login password for the Ops Manager's admin user
 ```
 $ sudo wget http://bit.ly/1cW8tY7
 $ mv 1cW8tYz eos
-$ sudo ruby eos decrypt <admin\_password> installation.yml decrypted.yml
+$ sudo ruby eos decrypt <admin_password> installation.yml decrypted.yml
 ```
 
 After decrypting the installation metadata, you will see something like the following:
@@ -872,11 +872,11 @@ $ irb
 
 If you get an error, such as "Psych::SyntaxError: mapping values are not allowed in this context at line 24" it means there is likely a problem with spacing, or formatting, at line 23 or 24 of your file.
 
-### SSH'ing into Ops Manager / Shortening the Feedback Cycle
+### SSHing into Ops Manager / Shortening the Feedback Cycle
 
 Product Teams have reported that the feedback cycle for product template changes is long. Changing your product template, uploading an entire product to Ops Manager, and watching it fail, can be frustrating. We are working to make this easier.
 
-One way to shorten the feedback cycle is possible by ssh'ing into the Ops Manager VM (username = tempest, password is whatever you set when you deployed the .ova). Once in the Ops Manager VM, you can edit product templates directly at /var/tempest-web/metadata.
+One way to shorten the feedback cycle is possible by SSHing into the Ops Manager VM (username = tempest, password is whatever you set when you deployed the .ova). Once in the Ops Manager VM, you can edit product templates directly at /var/tempest-web/metadata.
 
 After editing metadata you must restart the Ops Manager web application.
 
