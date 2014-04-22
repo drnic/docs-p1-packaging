@@ -24,7 +24,7 @@ The stemcells directory contains stemcells for your release.
 
 ## <a id='releases'></a> Product Package - Releases Directory ##
 
-The releases directory contains your product's release file. This is created using the BOSH command `bosh create release --with-tarball`. Note that even though the metadata example below appears to support specifying an array of multiple releases, some internal assumptions in Ops Manager still assume that your product zip will only come with a single release. In the future we plan to be able to support multiple BOSH releases in a product zip.
+The releases directory contains your product's release file. This is created using the BOSH command `bosh create release --with-tarball`. Multiple releases can be specified.
 
 ## <a id='metadata'></a> Product Package - Product Templates ##
 
@@ -44,116 +44,172 @@ stemcell:                                                  # [3]
   name:    bosh-vsphere-esxi-ubuntu
   file:    bosh-stemcell-1657-ubuntu.tgz
   version: "1657"
-  md5:     b6e99fe35f32437322a8d7326e8518d7
 compiled_package:                                          # [4]
   name:    redis
   file:    redis-0.2-dev-ubuntu-1657.tgz
   version: 0.2-dev
-  md5:     abb919f6d6d7a212b1bf764941830f3e
-releases:
+releases:                                                  # [5]
   - name:    redis
     file:    redis-0.2-dev.tgz
     version: 0.2-dev
-    md5: ec3d77785e8878ef4f518e36d5ed66e0
+  - name: redis-errands-release
+    file: redis-errands-release-0.16-dev.tgz
+    version: 0.16-dev
 label: Redis
 description: Redis is a key-value store that ...
-image: iVBORw0KGgoAAAANSUhEUgAAAG                          # [5]
+image: iVBORw0KGgoAAAANSUhEUgAAAG                          # [6]
 rank: 1
+post_deploy_errands:
+- name: test-redis                                         # [7]
 
-form_types:                                                # [6]
+form_types:                                                # [8]
   - name: Redis
     label: Redis
     description: This is my little Redis
-    property_inputs:                                       # [7]
+    property_inputs:                                       # [9]
       - reference: redis.password
 
-job_types:                                                 # [8]
-  - name: redis
-    label: redis
-    resource_label: redis label for resource page
-    description:  redis is a key value store
-    template: redis
+  - name: redis_snapshotting_collection                    # [10]
+      label: Snapshotting
+      description: Create a snapshotting policy
+      property_inputs:
+        - reference: .snapshots
+          label: Snapshots
+          description: Enter the seconds and number of changes for each snapshot
+          property_inputs:
+            - reference: seconds
+              label: Seconds
+              description: Number of seconds before a save occurs
+            - reference: changes
+              label: Changes
+              description: Number of changes to save in the elapsed seconds
 
-    resource_definitions:                                  # [9]
+property_blueprints:
+  - name: snapshots
+    type: collection
+    configurable: true
+    optional: false
+    property_blueprints:
+      - name: seconds
+        type: integer
+      - name: changes
+        type: integer
+
+job_types:                                                 # [11]
+  - name: redis
+    resource_label: redis label for resource page
+    template: redis
+    release: redis
+
+    resource_definitions:                                  # [12]
       - name: ram
         type: integer
-        label: RAM
         configurable: true
         default: 1024
 
       - name: ephemeral_disk
         type: integer
-        label: Ephemeral Disk
         configurable: true
         default: 2048
 
       - name: persistent_disk
         type: integer
-        label: Persistent Disk
         configurable: true
         default: 3072
 
       - name: cpu
         type: integer
-        label: CPU
-        configurable: true
+        configurable: true                                 # [13]
         default: 1
 
-    static_ip: 0                                           # [10]
+    static_ip: 0                                           # [14]
     dynamic_ip: 1
-    max_in_flight: 1                                       # [12]
-    serial: false                                          # [13]
+    max_in_flight: 1                                       # [15]
+    serial: false                                          # [16]
 
     instance_definitions:
       - name: instances
         type: integer
-        label: Instances
-        configurable: true                                 # [11]
+        configurable: true                                 
         default: 1
 
-    property_blueprints:                                   # [15]
+    property_blueprints:                                   # [17]
       - name: vm_credentials
         type: salted_credentials
-        label: VM credentials
         default:
           identity: vcap
      - name: password
         type: secret
-        label: password
-        description: It is a secret
         configurable: true
-        optional: true                                     # [14]
+        optional: true                                     # [18]
 
-    manifest: |                                            # [16]
+    manifest: |                                            # [19]
       redis.password: (( password.secret ))
+      redis.snapshots: (( .properties.snapshots.value ))
+
+  - name: test-redis
+    resource_label: Test Redis
+    template: test-redis
+    release: redis-errands-release
+    errand: true                                           # [20]
+    resource_definitions:
+    - name: ram
+      type: integer
+      configurable: true
+      default: 1024
+      constraints:
+        min: 1024
+    - name: ephemeral_disk
+      type: integer
+      configurable: true
+      default: 1024
+      constraints:
+        min: 1024
+    - name: persistent_disk
+      type: integer
+      configurable: false
+      default: 0
+    - name: cpu
+      type: integer
+      configurable: true
+      default: 1
+      constraints:
+        min: 1
+    static_ip: 0
+    dynamic_ip: 1
+    max_in_flight: 1
+    instance_definitions:
+    - name: instances
+      type: integer
+      configurable: false
+      default: 1
+    property_blueprints:
+    - name: vm_credentials
+      type: salted_credentials
+      default:
+        identity: vcap
 
   - name: compilation
-    label: compilation
     resource_label: compilation
-    description: compilation
 
     resource_definitions:
       - name: ram
         type: integer
-        label: RAM
         configurable: true
         default: 1_024
 
       - name: ephemeral_disk
         type: integer
-        label: Ephemeral Disk
         configurable: true
         default: 2_048
 
       - name: persistent_disk
         type: integer
-        label: Persistent Disk
         configurable: true
         default: 8_192
 
       - name: cpu
         type: integer
-        label: CPU
         configurable: true
         default: 1
 
@@ -164,7 +220,6 @@ job_types:                                                 # [8]
     instance_definitions:
       - name: instances
         type: integer
-        label: Instances
         default: 1
 ```
 
@@ -172,18 +227,22 @@ job_types:                                                 # [8]
 2. metadata\_version: Every release of Ops manager expects a certain metadata schema. We are currently at 1.1.
 3. stemcell: refers to the stemcell you placed in the stemcells directory (also applies to releases)
 4. compiled\_package: Optional. You can include compiled packages in the compiled\_packages directory for faster install.
-5. image: A base64 encoded version of the logo for your image.
-6. form\_types: Each form that is displayed for user input is generated from a form type.
-7. property\_input: An HTML input for a form is a reference to a property\_blueprint on a job\_type (see below).
-8. job\_types: A list of the jobs that correspond with the job names in your BOSH manifest.
-9. resource_definitions: These are the sections that create the sizing table in Ops Manager's resource page. Note: CPU must be a power of 2.
-10. static\_ip / dynamic\_ip: Corresponds to the BOSH setting for a job's IP allocation. If static\_ip is 0, dynamic\_ip must be 1 and vice versa. You should try and use dynamic\_ip when possible.
-11. configurable: Must be true for user to edit, otherwise it's disabled in the table or form.
-12. max\_in\_flight: Can be either a number or a ratio marked by a '%' percentage symbol.
-13. serial: true/false. If false this job will be deployed in parallel with other jobs.
-14. optional: true/false. true means the value can be nil/blank. Defaults to false if this key is not specified.
-15. property\_blueprints: There are two kinds of blueprints. Property blueprints, their settings, types and defaults are further explored in the Types secion.
-16. manifest: Properties that you need to put in your BOSH manifest, underneath the appropriate job, are created here. This is how the form\_type's value is passed to the manifest (see example to the left). For more information on passing variables as property values, refer to the Manifest section.
+5. releases: An array of releases. BOSH Errand releases can be referred to here.
+6. image: A base64 encoded version of the logo for your image.
+7. post\_deploy\_errands: An array of BOSH errands that run after a successful deployment. The name of the errand must correspond with the job.
+8. form\_types: Each form that is displayed for user input is generated from a form type.
+9. property\_input: An HTML input for a form is a reference to a property\_blueprint on a job\_type (see below).
+10. Collections. A collection is a data structure containing multiple property inputs, a bit like a database table. When rendered as HTML the collection will display add, edit, and delete indicators. A user can create many records in a collection.
+11. job\_types: A list of the jobs that correspond with the job names in your BOSH manifest.
+12. resource_definitions: These are the sections that create the sizing table in Ops Manager's resource page. Note: CPU must be a power of 2.
+13. configurable: Must be true for user to edit, otherwise it's disabled in the table or form.
+14. static\_ip / dynamic\_ip: Corresponds to the BOSH setting for a job's IP allocation. If static\_ip is 0, dynamic\_ip must be 1 and vice versa. You should try and use dynamic\_ip when possible.
+15. max\_in\_flight: Can be either a number or a ratio marked by a '%' percentage symbol.
+16. serial: true/false. If false this job will be deployed in parallel with other jobs.
+17. property\_blueprints: There are two kinds of blueprints. Property blueprints, their settings, types and defaults are further explored in the Types secion.
+18. optional: true/false. true means the value can be nil/blank. Defaults to false if this key is not specified.
+19. manifest: Properties that you need to put in your BOSH manifest, underneath the appropriate job, are created here. This is how the form\_type's value is passed to the manifest (see example to the left). For more information on passing variables as property values, refer to the Manifest section.
+20. errand: Optional. true/false. Set to true to run this job as an errand. This must correspond to the post\_deploy\_errand listed in #7 above.
 
 
 ## <a id="blueprints"></a> More on Product Templates - Blueprints ##
@@ -233,6 +292,12 @@ Accessor: value
 ### domain
 
 Used for things like foo.bar.com. Renders as a text field if configurable.
+
+Accessor: value
+
+### wildcard_domain
+
+Same as domain but can be used with a WildcardDomainVerifier. 
 
 Accessor: value
 
