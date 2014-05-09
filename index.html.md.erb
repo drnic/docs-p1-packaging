@@ -2,7 +2,7 @@
 title: Packaging Pivotal One Products
 ---
 
-This document is intended for product teams to learn how to package, distribute, and upgrade Pivotal One products across releases. 
+This document is intended for product teams to learn how to package, distribute, and upgrade Pivotal One products across releases.
 
 Important: Packaging custom products is an alpha feature supported through a Pivotal Professional Services engagement or as part of an Enterprise License Agreement.
 
@@ -130,7 +130,7 @@ job_types:                                                 # [11]
     instance_definitions:
       - name: instances
         type: integer
-        configurable: true                                 
+        configurable: true
         default: 1
 
     property_blueprints:                                   # [17]
@@ -297,7 +297,7 @@ Accessor: value
 
 ### wildcard_domain
 
-Same as domain but can be used with a WildcardDomainVerifier. 
+Same as domain but can be used with a WildcardDomainVerifier.
 
 Accessor: value
 
@@ -941,9 +941,9 @@ If you get an error, such as "Psych::SyntaxError: mapping values are not allowed
 
 Product Teams have reported that the feedback cycle for product template changes is long. Changing your product template, uploading an entire product to Ops Manager, and watching it fail, can be frustrating. We are working to make this easier.
 
-One way to shorten the feedback cycle is possible by SSHing into the Ops Manager VM (username = tempest, password is whatever you set when you deployed the .ova). Once in the Ops Manager VM, you can edit product templates directly at /var/tempest-web/metadata.
+One way to shorten the feedback cycle is possible by SSHing into the Ops Manager VM (username = tempest, password is whatever you set when you deployed the .ova). Once in the Ops Manager VM, you can edit product templates directly at `/var/tempest/meta-data`.
 
-After editing metadata you must restart the Ops Manager web application.
+After editing metadata, you must restart the Ops Manager web application.
 
 ```
 $ sudo service tempest-web stop
@@ -956,11 +956,11 @@ There is an undocumented feature in Ops Manager to restore the previous version 
 
 ### Starting Fresh
 
-If your installation file seems corrupted for some reason, and you want to start over again without installing a new .ova, you can go into vCenter, kill any deployed VMs, and then clean all of the files from the directory /var/tempest/workspace.
+If your installation file seems corrupted for some reason, and you want to start over again without installing a new .ova, you can go into vCenter, kill any deployed VMs, and then clean all of the files from the directory `/var/tempest/workspace`.
 
 ### Using the Ops Manager API
 
-Using CURL, it is possible to automate most of the actions possible via the Ops Manager web interface. To view the Ops Manager API documentation visit https://{Ops Manager}/docs
+Using CURL, it is possible to automate most of the actions possible via the Ops Manager web interface. To view the Ops Manager API documentation, visit `https://{Ops Manager}/docs`.
 
 ### Automating Ops Manager deployment
 
