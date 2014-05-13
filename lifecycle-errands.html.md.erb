@@ -24,9 +24,7 @@ Typical post-install errands include smoke or acceptance tests, databases
 initialization or database migration, and service broker registration.
 
 <a id='pre-delete'>**Pre-Delete**</a>: Pre-delete errands run after an operator
-chooses to delete a product, before Ops Manager deletes the product.
-
-Pre-delete errands are not displayed by Ops Manager, and an operator cannot prevent a pre-delete errand from running.
+chooses to delete a product, before Ops Manager deletes the product. Ops Manager does not display pre-delete errands, and an operator cannot prevent a pre-delete errand from running.
 
 Typical pre-delete errands include clean up of application artifacts and service
 broker de-registration.
@@ -46,7 +44,7 @@ Controller, and the service plans are not made public.
 
 ## Pre-Delete Errand Example ##
 
-Pivotal MySQL has a Broker **Deregistrar** pre-delete errand. This errand:
+Pivotal MySQL has a **Broker Deregistrar** pre-delete errand. This errand:
 
 * Purges the service offering
 * Purges all service instances
