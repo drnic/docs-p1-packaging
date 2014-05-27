@@ -239,7 +239,7 @@ job_types:                                                 # [11]
 14. static\_ip / dynamic\_ip: Corresponds to the BOSH setting for a job's IP allocation. If static\_ip is 0, dynamic\_ip must be 1 and vice versa. You should try and use dynamic\_ip when possible.
 15. max\_in\_flight: Can be either a number or a ratio marked by a '%' percentage symbol.
 16. serial: true/false. If false this job will be deployed in parallel with other jobs.
-17. property\_blueprints: There are two kinds of blueprints. Property blueprints, their settings, types and defaults are further explored in the Types secion.
+17. property\_blueprints: There are two kinds of blueprints. Property blueprints, their settings, types and defaults are further explored in the Types section.
 18. optional: true/false. true means the value can be nil/blank. Defaults to false if this key is not specified.
 19. manifest: Properties that you need to put in your BOSH manifest, underneath the appropriate job, are created here. This is how the form\_type's value is passed to the manifest (see example to the left). For more information on passing variables as property values, refer to the Manifest section.
 20. errand: Optional. true/false. Set to true to run this job as an errand. This must correspond to the post\_deploy\_errand listed in #7 above. For more information about errands, see [Understanding Lifecycle Errands](./lifecycle-errands.html).
@@ -1045,9 +1045,9 @@ The number of canaries (integer) can now be specified for a job_type
 
 CPU resource definition must specify a power\_of\_two constraint
 
-### Microbosh 1.1 features
+### MicroBOSH 1.1 features
 
-To take advantage of the following features, a product must specify a dependency on microbosh 1.1:
+To take advantage of the following features, a product must specify a dependency on MicroBOSH 1.1:
 
 * compiled\_packages can be specified for a product
 * Product teams can specify jobs to deploy in parallel with serial: false
