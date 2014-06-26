@@ -875,10 +875,10 @@ migrations:
         selector: "product_version"
         to: "2.0.0.0"
       - type: update
-        selector: components.[name=redis].jobs.[name=redis].properties.[definition=credentials]
+        selector: jobs.[type=redis].properties.[definition=credentials]
      to: redis_password
       - type: delete
-      components.[name=redis].jobs.[name=redis].properties.[definition=credentials].value.identity
+      jobs.[type=redis].properties.[definition=credentials].value.identity
 ```
 
 ## <a id='verifier'></a>Verifiers ##
