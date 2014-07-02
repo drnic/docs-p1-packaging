@@ -34,7 +34,7 @@ Note: Archiving folders as subdirectories of other folders is not supported.
 
 To understand how to author product templates / metadata, let's look at an example and explain the elements of interest.
 
-```yaml
+```
 
 ---
 name: p-redis                                              # [1]
@@ -262,7 +262,7 @@ Accessor: value
 
 Renders as a text field if configurable. These property definitions allow you to additionally specify constraints as follows:
 
-```yaml
+```
 name: my-prop
 type: integer
 label: Foo
@@ -340,7 +340,7 @@ Accessor: value, parsed\_ip\_ranges (array)
 
 Renders a list of checkboxes (kind of like a multi-boolean). When giving a property definition this type, you must also specify a list of options as follows:
 
-```yaml
+```
 Same: my-prop type: multi_select_options label: Foo options: - name: checkbox1 label: Checkbox 1 - name: checkbox2 label: Checkbox 2 - name: checkbox3 label: Checkbox 3
 ```
 
@@ -457,7 +457,7 @@ To refer to things that were either entered by a user, or auto generated, you ca
 
 You can do the following things with spiff-like syntax:
 
-```yaml
+```
 
 job_types:
   - name: other_job
@@ -500,7 +500,7 @@ You should specify provides\_product\_version in your product template, even tho
 
 Here's how this looks in Elastic Runtime's product template:
 
-```yaml
+```
 ---
 name: cf
 product_version: 1.0.0.1
@@ -525,7 +525,7 @@ requires_product_versions:
 
 Here's how to create dependencies by job:
 
-```yaml
+```
 job_types:
   - name: database-server
     label: My DB Server
