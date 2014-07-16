@@ -493,42 +493,50 @@ job_types:
 In [EBNF](http://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form)-ish format, here's the specification for double-parens template syntax:
 
 ```
-snippet_string          = *char *( interpolation_string *char )
+snippet_string          = *char, *( interpolation_string, *char );
 
-interpolation_string    = "((" *SP compound_expression *SP "))"
+interpolation_string    = "((", *SP, compound_expression, *SP, "))";
 
-compound_expression     = conditional_expression / lazy_or_expression
+compound_expression     = conditional_expression | lazy_or_expression;
 
-conditional_expression  = property_name ".value_present?" *SP "?" *SP expression *SP ":" *SP expression
+conditional_expression  = property_name, ".value_present?", *SP, "?", *SP,
+                          expression, *SP, ":", *SP, expression;
 
-lazy_or_expression      = expression *( *SP "||" *SP expression )
+lazy_or_expression      = expression, *( *SP, "||", *SP, expression );
 
-expression              = [[".." product_name] "." job_name] job_property_expression /
-                          "$runtime." runtime_variable /
-                          string_literal
+expression              = job_property_expression
+                          | "$runtime.", runtime_variable
+                          | string_literal;
 
-job_property_expression = property_name [[ "." field_name ]] /
-                          "name" / "first_ip" / "ips" / "ram" / "ephemeral_disk" / "instances"
+job_property_expression = [["..", product_name], ".", job_name], property_name
+                            [[ "." field_name ]]
+                          | job_attribute;
 
-runtime_variable        = "system_domain" / "apps_domain" / "system_api_url" / "uaa_url" /
-                          "login_url" / "console_url" / "default_reply_to" / "default_from"
+job_attribute           = "name" | "first_ip" | "ips" | "ram"
+                          | "ephemeral_disk" | "instances";
 
-product_name            = name
+runtime_variable        = "system_domain" | "apps_domain" | "system_api_url"
+                          | "uaa_url" | "login_url" | "console_url"
+                          | "default_reply_to" | "default_from";
 
-job_name                = name
+product_name            = name;
 
-property_name           = name
+job_name                = name;
 
-field_name              = name
+property_name           = name;
 
-name                    = ALPHA / DIGIT / "_"
+field_name              = name;
 
-string_literal          = '"' *char '"'
+name                    = ALPHA | DIGIT | "_";
 
-char                    = <any Unicode character>
+string_literal          = '"', *char, '"';
+
+char                    = any Unicode character;
+```
 
 Examples:
 
+```
 (( .other_job.some_property.value ))
 
 (( ..another_product.its_job.some_credentials.identity ))
