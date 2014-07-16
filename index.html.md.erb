@@ -1105,11 +1105,11 @@ In earlier metadata versions (1.2 and before), ERB expressions could be included
 
 Here are some common translations from ERB syntax to double-parens syntax:
 
-ERB syntax                                                                                                       | double-parens syntax
----------------------------------------------------------------------------------------------------------------- | -----------------------------
-`https://console.&lt;%= Tempest::CfAddressProvider.from_config(@installation).system %&gt;`                      | `(( $runtime.console_url ))`
-`&lt;%= job.get_property("foo_credentials").typed_value.identity %&gt;`                                          | `(( .foo_credentials.identity ))`
-`&lt;%= (@component.find_job_with_type('cloud_controller').get_property("encrypt_key").typed_value.secret %&gt;` | `(( ..cloud_controller.encrypt_key.secret ))`
+ERB syntax                                                                                                 | double-parens syntax
+---------------------------------------------------------------------------------------------------------- | -----------------------------
+`https://console.<%%= Tempest::CfAddressProvider.from_config(@installation).system %>`                     | `(( $runtime.console_url ))`
+`<%%= job.get_property("foo_credentials").typed_value.identity %>`                                         | `(( .foo_credentials.identity ))`
+`<%%= @component.find_job_with_type('cloud_controller').get_property("encrypt_key").typed_value.secret %>` | `(( ..cloud_controller.encrypt_key.secret ))`
 
 ## <a id='changes-11'></a> Changes from 1.0.0.1 to 1.1.0.0 ##
 
