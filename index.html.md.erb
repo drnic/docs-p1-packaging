@@ -451,7 +451,7 @@ Generates a password.
 
 When a user clicks the Install or Apply Changes buttons in Ops Manager, a BOSH deployment manifest is generated and a BOSH deploy begins.
 
-A BOSH manifest can include arbitrary structured data for each job. This are specified in the `manifest` section of each of the `job_types` in your product template. The data may include user-entered or auto-generated property values declared by your product, or by any of its jobs, or by a product (or its jobs) on which your product depends.
+A BOSH manifest can include arbitrary structured data for each job. These are specified in the `manifest` section of each of the `job_types` in your product template. The data may include user-entered or auto-generated property values declared by your product, or by any of its jobs, or by a product (or its jobs) on which your product depends.
 
 To build manifest data for your jobs, you can use a special reference syntax, which the Ops Manager team refers to as "double-parens syntax". Please note that this is not the same as the spiff command line tool many of the other teams are using to generate manifests; it simply has a syntax that looks vaguely like spiff syntax.
 
@@ -475,7 +475,7 @@ job_types:
         blah: (( bar.password ))
         hi: (( baz.value ))
       networkstuff:
-        my_ip: (( first_ip ))  # this access the first IP allocated to this job
+        my_ip: (( first_ip ))  # this is the first IP allocated to this job
         bobs_ip: (( .other_job.first_ip ))  # the leading . means to go up a
                   # level (from the job to the product), then find a job named
                   # `other_job`, and then ask it for things such as its first
@@ -489,6 +489,10 @@ job_types:
       - name: creds
         type: simple_credentials
 ```
+
+Each `job_type`'s manifest string is evaluated as YAML. Each node (represented below with the <code>snippet_string</code> rule), including hash keys, values, and array elements, is then checked for double-parens expressions, which are substituted into the manifest.
+
+If a <code>snippet_string</code> contains exactly one set of double parens (the <code>interpolation_string</code> rule below), then the resulting value (which may be a number, hash, array, or other non-string value) is inserted directly into the manifest; otherwise, the value will be converted to a string before being concatenated.
 
 In [EBNF](http://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form)-ish format, here's the specification for double-parens template syntax:
 
@@ -508,9 +512,8 @@ expression              = job_property_expression
                           | "$runtime.", runtime_variable
                           | string_literal;
 
-job_property_expression = [["..", product_name], ".", job_name], property_name
-                            [[ "." field_name ]]
-                          | job_attribute;
+job_property_expression = [["..", product_name], ".", job_name],
+                          ( property_name, ".", field_name | job_attribute );
 
 job_attribute           = "name" | "first_ip" | "ips" | "ram"
                           | "ephemeral_disk" | "instances";
@@ -536,24 +539,36 @@ char                    = any Unicode character;
 
 Examples:
 
-```
-(( .other_job.some_property.value ))
+<dl>
 
-(( ..another_product.its_job.some_credentials.identity ))
+<dt><pre>(( paint_color.value ))</pre></dt>
+<dd>The value of the <code>paint_color</code> property of the current job (the <code>.value</code> portion is required).</dd>
 
-(( favorite_color.value ))
+<dt><pre>(( .motor.rpm.value ))</pre></dt>
+<dd>Retrieves the value of the <code>rpm</code> property from the job <code>motor</code> on this same product (the Tilt-a-whirl).</dd>
 
-(( $runtime.login_url ))
+<dt><pre>(( ..waterslide.pump.credentials.identity ))</pre></dt>
+<dd>Retrieves the <code>identity</code> attribute of the <code>credentials</code> property belonging to the <code>pump</code> job within the <code>waterslide</code> product (so you can turn on the water).</dd>
 
-I have (( instances )) instances!
+<dt><pre>(( $runtime.login_url ))</pre></dt>
+<dd>The URL for the interactive web page at which a user could log in. Example: <code>https://login.amusement-park.com</code>.</dd>
 
-(( secret.identity || previous_secret.identity ))
+<dt><pre>I have (( .safety_monitor.instances )) safety monitors!</pre></dt>
+<dd>The number of instances for the <code>safety_monitor</code> job is inserted into the sentence.</dd>
 
-(( favorite_color.value_present? ? favorite_color.value : "none" ))
+<dt><pre>(( secret.identity || previous_secret.identity ))</pre></dt>
+<dd>The <code>identity</code> value of this job's <code>secret</code> property, if it is set. Otherwise, use the <code>identity</code> value of the <code>previous_secret</code> property. The snippet can contain any number of expressions to be tested, chained together by the <code>||</code> operator.</dd>
 
+<dt><pre>(( height_requirement.value ? height_disclaimer.value : "Line starts here" ))</pre></dt>
+<dd>If the ride has a height requirement, return the "must be this tall" text, otherwise invite riders to get in line.</dd>
 
-If the string node exactly matches <interpolation_string>, the resulting value (possibly a non-string primitive, a hash, or an array) will be inserted directly into the job manifest object graph at that node. Otherwise, if the string node matches <snippet_string>, the resulting value of any interpolation_strings is converted to a string before being interpolated.
-```
+<dt><pre>(( rider_capacity.value ))</pre></dt>
+<dd>In this example, the expression does not contain concatenation (it contains nothing but one double-parens expression), so the rider capacity is inserted into the manifest as a number.</dd>
+
+<dt><pre>(( rider_capacity.value )) is the total capacity of the tilt-a-whirl</pre></dt>
+<dd>In this example, the expression contains concatenation, so the rider capacity is inserted into the manifest as part of a string.</dd>
+
+</dl>
 
 ## <a id='dependecies'></a> More about Product Templates - Dependency Management
 
