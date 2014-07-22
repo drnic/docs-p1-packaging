@@ -530,7 +530,9 @@ property_name           = name;
 
 field_name              = name;
 
-name                    = ALPHA | DIGIT | "_";
+name                    = name_char, *name_char;
+
+name_char               = ALPHA | DIGIT | "_";
 
 string_literal          = '"', *char, '"';
 
