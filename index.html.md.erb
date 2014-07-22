@@ -1125,6 +1125,16 @@ https://console.<%%= Tempest::CfAddressProvider.from_config(@installation).syste
 
 For an explanation of double-parens syntax, see [More on Product Templates - Manifest Snippets](#manifestsnips).
 
+### There may now be multiple networks, and there's no guarantee that one will be named `default`.
+
+This will affect your product template if, for example, you had a manifest section such as:
+
+```
+  manifest: |
+    networks:
+      app: default
+```
+
 ## <a id='changes-11'></a> Changes from 1.0.0.1 to 1.1.0.0 ##
 
 The following changes were made between version 1.0.0.1 released in November of 2013 and 1.1.0.0 released in March 2014:
