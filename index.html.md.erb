@@ -508,9 +508,14 @@ conditional_expression  = property_name, ".value_present?", *SP, "?", *SP,
 
 lazy_or_expression      = expression, *( *SP, "||", *SP, expression );
 
-expression              = job_property_expression
+expression              = product_property_expression
+                          | job_property_expression
                           | "$runtime.", runtime_variable
                           | string_literal;
+
+product_property_expression
+                        = ["..", product_name], ".properties",
+                          property_name, ".", field_name;
 
 job_property_expression = [["..", product_name], ".", job_name],
                           ( property_name, ".", field_name | job_attribute );
@@ -557,6 +562,9 @@ Examples:
 
 <dt><pre>I have (( .safety_monitor.instances )) safety monitors!</pre></dt>
 <dd>The number of instances for the <code>safety_monitor</code> job is inserted into the sentence.</dd>
+
+<dt><pre>It has been (( .properties.mtbf.value )) days since the last injury.</pre></dt>
+<dd>A reminder of man's fragility and the fleeting nature of life is provided for the manifest.</dd>
 
 <dt><pre>(( secret.identity || previous_secret.identity ))</pre></dt>
 <dd>The <code>identity</code> value of this job's <code>secret</code> property, if it is set. Otherwise, use the <code>identity</code> value of the <code>previous_secret</code> property. The snippet can contain any number of expressions to be tested, chained together by the <code>||</code> operator.</dd>
