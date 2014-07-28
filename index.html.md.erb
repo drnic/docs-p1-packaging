@@ -27,7 +27,7 @@ The stemcells directory contains stemcells for your release.
 
 The releases directory contains your product's release file. This is created using the BOSH command `bosh create release --with-tarball`. Multiple releases can be specified.
 
-## <a id='metadata'></a> Product Package - Product Templates ##
+## <a id='template'></a> Product Package - Product Templates ##
 
 The metadata directory contains a yaml file, named whatever you wish, with the product template that Ops Manager needs to prompt the user and do an install. This product template references your release and stemcell, creates the user input forms, and generates a BOSH manifest when a user clicks Apply Changes or Install in Ops Manager.
 
