@@ -511,6 +511,7 @@ lazy_or_expression      = expression, *( *SP, "||", *SP, expression );
 expression              = product_property_expression
                           | job_property_expression
                           | "$runtime.", runtime_variable
+                          | "$director.", director_variable
                           | string_literal;
 
 product_property_expression
@@ -526,6 +527,8 @@ job_attribute           = "name" | "first_ip" | "ips" | "ram"
 runtime_variable        = "system_domain" | "apps_domain" | "system_api_url"
                           | "uaa_url" | "login_url" | "console_url"
                           | "default_reply_to" | "default_from";
+
+director_variable       = "deployment_ip" | "username" | "password"
 
 product_name            = name;
 
