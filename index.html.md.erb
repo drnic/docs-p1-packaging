@@ -308,7 +308,7 @@ Accessor: value
 
 ### email\_credentials
 
-Renders as a pair of text fields as configurable, where the second field will be ******'d out.
+Renders as a pair of text fields as configurable, where the second field will be masked out with asterisks (******).
 
 Accessors: identity, password
 
@@ -341,7 +341,7 @@ Accessor: value, parsed\_ip\_ranges (array)
 Renders a list of checkboxes (kind of like a multi-boolean). When giving a property definition this type, you must also specify a list of options as follows:
 
 ```
-Same: my-prop type: multi_select_options label: Foo options: - name: checkbox1 label: Checkbox 1 
+Same: my-prop type: multi_select_options label: Foo options: - name: checkbox1 label: Checkbox 1
   - name: checkbox2 label: Checkbox 2 - name: checkbox3 label: Checkbox 3
 ```
 
@@ -393,7 +393,7 @@ Accessors: sha512\_hashed\_password, identity, salt, password
 
 ### simple\_credentials
 
-A pair of identity and password. Any strings will do. Renders as two text fields in the UI, with the password one being ******'d out.
+A pair of identity and password. Any strings will do. Renders as two text fields in the UI, with the password one being masked out with asterisks (******) out.
 
 Accessors: identity, password
 
