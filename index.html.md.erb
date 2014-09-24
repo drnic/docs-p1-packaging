@@ -15,23 +15,22 @@ This document will be difficult to follow unless you have a fully functional BOS
 
 Pivotal Ops Manager is visual interface for installing and upgrading distributed software in the cloud. In its first, it is a vSphere Virtual Appliance that launches a Ruby on Rails application and orchestrates Pivotal's BOSH platform to manage virtual machines on vSphere. As of this writing, it can install Cloud Foundry, MySQL, Rabbit MQ, Pivotal HD, and any other product that has been packaged as a BOSH release.
 
-
 ## <a id='package'></a> How should a product be packaged? ##
 
-The Ops Manager team refers to a packaged product as a "product zip" because it is archived using .zip format. The extension, however, should be .pivotal, to prevent users from extracting the .zip. The contents of that archive are the following top-level directories:
+The Ops Manager team refers to a packaged product as a "product zip" because it is archived using .zip format. The extension, however, should be .pivotal, to prevent users from extracting the .zip. The contents of that archive are the top-level directories listed below.
 
-## <a id='stemcells'></a> Product Package - Stemcells Directory ##
+<p class='note'><strong>Note</strong>: Archiving folders as subdirectories of other folders is not supported.</p>
+
+### <a id='stemcells'></a> Product Package - Stemcells Directory ###
 The stemcells directory contains stemcells for your release.
 
-## <a id='releases'></a> Product Package - Releases Directory ##
+### <a id='releases'></a> Product Package - Releases Directory ###
 
 The releases directory contains your product's release file. This is created using the BOSH command `bosh create release --with-tarball`. Multiple releases can be specified.
 
-## <a id='template'></a> Product Package - Product Templates ##
+### <a id='template'></a> Product Package - Product Templates ###
 
 The metadata directory contains a yaml file, named whatever you wish, with the product template that Ops Manager needs to prompt the user and do an install. This product template references your release and stemcell, creates the user input forms, and generates a BOSH manifest when a user clicks Apply Changes or Install in Ops Manager.
-
-Note: Archiving folders as subdirectories of other folders is not supported.
 
 To understand how to author product templates / metadata, let's look at an example and explain the elements of interest.
 
@@ -342,7 +341,8 @@ Accessor: value, parsed\_ip\_ranges (array)
 Renders a list of checkboxes (kind of like a multi-boolean). When giving a property definition this type, you must also specify a list of options as follows:
 
 ```
-Same: my-prop type: multi_select_options label: Foo options: - name: checkbox1 label: Checkbox 1 - name: checkbox2 label: Checkbox 2 - name: checkbox3 label: Checkbox 3
+Same: my-prop type: multi_select_options label: Foo options: - name: checkbox1 label: Checkbox 1 
+  - name: checkbox2 label: Checkbox 2 - name: checkbox3 label: Checkbox 3
 ```
 
 The value of such a property, that you'll have access to in the manifest parts of your metadata, will be an array of the names of the checked boxes.
