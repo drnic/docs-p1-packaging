@@ -19,7 +19,7 @@ Pivotal Ops Manager is visual interface for installing and upgrading distributed
 
 The Ops Manager team refers to a packaged product as a "product zip" because it is archived using .zip format. The extension, however, should be .pivotal, to prevent users from extracting the .zip. The contents of that archive are the top-level directories listed below.
 
-<p class='note'><strong>Note</strong>: Archiving folders as subdirectories of other folders is not supported.</p>
+<p class='note'><strong>Note</strong>: Creating a product zip from folders as subdirectories of other folders is not supported.</p>
 
 ### <a id='stemcells'></a> Product Package - Stemcells Directory ###
 The stemcells directory contains stemcells for your release.
@@ -235,7 +235,7 @@ job_types:                                                 # [11]
 10. Collections. A collection is a data structure containing multiple property inputs, a bit like a database table. When rendered as HTML the collection will display add, edit, and delete indicators. A user can create many records in a collection.
 11. job\_types: A list of the jobs that correspond with the job names in your BOSH manifest.
 12. resource_definitions: These are the sections that create the sizing table in Ops Manager's resource page. Note: CPU must be a power of 2.
-13. configurable: Must be true for user to edit, otherwise it's disabled in the table or form.
+13. configurable: Must be true for user to edit, otherwise it is disabled in the table or form.
 14. static\_ip / dynamic\_ip: Corresponds to the BOSH setting for a job's IP allocation. If static\_ip is 0, dynamic\_ip must be 1 and vice versa. You should try and use dynamic\_ip when possible.
 15. max\_in\_flight: Can be either a number or a ratio marked by a '%' percentage symbol.
 16. serial: true/false. If false this job will be deployed in parallel with other jobs.
@@ -284,7 +284,7 @@ Accessor: value
 
 ### ca\_certificate
 
-Specially created for Rabbit because of the way SSL is done with Rabbit clusters. Renders as a textarea if configurable.
+Specially created for Rabbit because of the way SSL is done with Rabbit clusters. Renders as a text area if configurable.
 
 Accessor: value
 
@@ -302,7 +302,7 @@ Accessor: value
 
 ### email
 
-Renders as a text field if configurable. Validates that it's a sensible email address, e.g. foo@bar.com
+Renders as a text field if configurable. Validates that it is a sensible email address, e.g. foo@bar.com
 
 Accessor: value
 
@@ -314,7 +314,7 @@ Accessors: identity, password
 
 ### host\_mapping
 
-Renders as textarea. Parses and validates as host mappings.
+Renders as text area. Parses and validates as host mappings.
 
 Accessors: value
 
@@ -341,8 +341,16 @@ Accessor: value, parsed\_ip\_ranges (array)
 Renders a list of checkboxes (kind of like a multi-boolean). When giving a property definition this type, you must also specify a list of options as follows:
 
 ```
-Same: my-prop type: multi_select_options label: Foo options: - name: checkbox1 label: Checkbox 1
-  - name: checkbox2 label: Checkbox 2 - name: checkbox3 label: Checkbox 3
+name: my-prop
+type: multi_select_options
+label: Foo
+options:
+  - name: checkbox1
+    label: Checkbox 1
+  - name: checkbox2
+    label: Checkbox 2 -
+    name: checkbox3
+    label: Checkbox 3
 ```
 
 The value of such a property, that you'll have access to in the manifest parts of your metadata, will be an array of the names of the checked boxes.
@@ -375,7 +383,7 @@ Accessor: value
 
 ### rsa\_cert\_credentials
 
-A triple of private key, cert, and csr. If configurable, then in the UI it only renders a field for the private key and cert (both as textareas).
+A triple of private key, cert, and csr. If configurable, then in the UI it only renders a field for the private key and cert (both as text areas).
 
 Accessors: public\_key\_pem, cert\_and\_private\_key\_pems
 
@@ -411,17 +419,19 @@ Accessor: value
 
 ## <a id="random"></a> More on Product Templates - Types with Random Values ##
 
-You may wish to have some properties randomly generated rather than given by the user.  Currently this behaviour is supported for the various \_credentials types. To trigger auto-generation, the property\_definition must be non-configurable. All of these types are "compound values" in the sense that they are made up of more than one basic thing, e.g. email\_credentials is made up of an identity (email) and password. Auto-generation can be used to generate just part of a set of credentials when combined with partially specified default values.  For example, a property blueprint like the following:
+You may wish to have some properties randomly generated rather than given by the user. Currently this behavior is supported for the various \_credentials types. To trigger auto-generation, the property\_definition must be non-configurable. All of these types are "compound values" in the sense that they are made up of more than one basic thing, e.g. email\_credentials is made up of an identity (email) and password. Auto-generation can be used to generate just part of a set of credentials when combined with partially specified default values. For example, a property blueprint like the following has its salt and password auto-generated, but not its identity.
 
-    property_blueprints:
+```yaml
+     property_blueprints:
+...
       - name: vm_credentials
         type: salted_credentials
         label: VM credentials
-    configurable: false
+     configurable: false
         default:
           identity: vcap
 
-Has its salt and password auto-generated, but not its identity.
+```
 
 ### email\_credentials
 
@@ -452,9 +462,9 @@ Generates a password.
 
 When a user clicks the Install or Apply Changes buttons in Ops Manager, a BOSH deployment manifest is generated and a BOSH deploy begins.
 
-A BOSH manifest includes a number of properties for each job. These come from the job\_types in your product template, but the values the user entered are evaluated from the accessors listed in the table above. You can also create properties using the manifest section of your product template, which is most common for things that are neither entered by the user nor autogenerated.
+A BOSH manifest includes a number of properties for each job. These come from the job\_types in your product template, but the values the user entered are evaluated from the accessors listed in the table above. You can also create properties using the manifest section of your product template, which is most common for things that are neither entered by the user nor auto-generated.
 
-To refer to things that were either entered by a user, or auto generated, you can use a special reference syntax, which the Ops Manager team refers to as "spiff syntax." Please note that this is not the same as the spiff command line tool many of the other teams are using to generate manifests, it simply has a syntax that looks vaguely like spiff syntax.  You can also use Ruby's ERB syntax, but requires you to know something about the evaluation context and Ops Manager's internal object graph.  It is not recommended that anyone use ERB.
+To refer to things that were either entered by a user, or auto generated, you can use a special reference syntax, which the Ops Manager team refers to as "spiff syntax." Please note that this is not the same as the spiff command line tool many of the other teams are using to generate manifests, it simply has a syntax that looks vaguely like spiff syntax.  You can also use Ruby's ERB syntax, but requires you to know something about the evaluation context and Ops Manager's internal object graph. It is not recommended that anyone use ERB.
 
 You can do the following things with spiff-like syntax:
 
@@ -540,7 +550,7 @@ job_types:
 
 ## <a id='migrations'></a>Product Package - content\_migrations directory ##
 
-The content migrations directory contains yaml files that migrate installation data for products they previously installed. As of this writing we are within the 1.x.x.x release cycle, and thus all previously released product installations should be migratable to the next. If you change the product template structure, like add, edit, or delete a job\_type, or property\_blueprint, you will need to create a content\_migration so that the customer's installation can migrate to these new settings.
+The content migrations directory contains yaml files that migrate installation data for products they previously installed. As of this writing we are within the 1.x.x.x release cycle, and thus all previously released product installations should be able to be migrated to the next. If you change the product template structure, like add, edit, or delete a job\_type, or property\_blueprint, you will need to create a content\_migration so that the customer's installation can migrate to these new settings.
 
 ## <a id='compiledpackages'></a>Product Package - compiled\_packages directory ##
 
@@ -906,7 +916,7 @@ Form verifiers run when a user saves a form. You name the verifier in the form\_
 
 Install time verifiers run when a user clicks the Apply Changes or Install buttons. Usually you will run the same verifiers at install or form save, but they are broken out in case there are exceptions.
 
-Here is an excerpt from the Elastic Runtime product template that verfies that the SSO Appliance, and SMTP servers, are available at the addresses the user entered:
+Here is an excerpt from the Elastic Runtime product template that verifies that the SSO Appliance, and SMTP servers, are available at the addresses the user entered:
 
 ```yaml
 install_time_verifiers:
@@ -1030,7 +1040,7 @@ The name of the verifier specifies the ruby class name of the verifier to run (l
 
 Forms are now specified in the metadata with a form\_type key. Job types are now just containers for data and the UI is drawn from the form_types key. Each form type has a name (programmer facing), label (end user facing), a description string.
 
-Forms can also optionally specify a verifier to run when the form is saved. They must also specify an array of property inputs that point to the properties in the jobs (ie. reference: job-name.property-name).
+Forms can also optionally specify a verifier to run when the form is saved. They must also specify an array of property inputs that point to the properties in the jobs (i.e. reference: job-name.property-name).
 
 ### max\_in\_flight
 
