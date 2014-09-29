@@ -552,23 +552,51 @@ job_types:
 
 The content migrations directory contains yaml files that migrate installation data for products they previously installed. As of this writing we are within the 1.x.x.x release cycle, and thus all previously released product installations should be able to be migrated to the next. If you change the product template structure, like add, edit, or delete a job\_type, or property\_blueprint, you will need to create a content\_migration so that the customer's installation can migrate to these new settings.
 
-## <a id='compiledpackages'></a>Product Package - compiled\_packages directory ##
+## <a id='compiledpackages'></a>Product Package - compiled_packages directory ##
 
-BOSH offers a new compiled feature as of December 2013. This feature will prevent BOSH from spending time booting compilation VMs to compile packages for a deployment.
+The BOSH compiled packages feature allows you to compile a package once, then
+reuse the same compiled package each time you deploy.
+If you do not use this feature, BOSH boots a compilation VM and compiles your
+package each time you deploy.
 
-Login to the Ops Manager Virtual Machine, sudo to root and run the following:
+To use the compiled packages feature, follow the instructions below on your
+local client.
 
-```
-$ cd /home/tempest-web/tempest/web
-$ BUNDLE_GEMFILE=bosh.Gemfile bundle exec bosh target 172.16.66.17
-$ BUNDLE_GEMFILE=bosh.Gemfile bundle exec bosh deployments
-+-------------------------+--------------+-------------------------------+
-| Name                    | Release(s)   | Stemcell(s)                   |
-+-------------------------+--------------+-------------------------------+
-| cf-2a8c2e075b8b84b46b5c | cf/154.3-dev | bosh-vsphere-esxi-ubuntu/1471 |
-+-------------------------+--------------+-------------------------------+
-$ BUNDLE_GEMFILE=bosh.Gemfile bundle exec bosh export compiled_packages cf/154.3-dev bosh-vsphere-esxi-ubuntu/1471 /tmp
-```
+<p class='note'><strong>Note</strong>: The version of the BOSH CLI on your local
+	client must match the version of BOSH installed on the Ops Manager VM.</p>
+
+1. Deploy your package.
+1. Create a compiled_packages directory within your package directory.
+1. From the package directory, run `bosh target OPS-MANAGER-DIRECTOR-IP-ADDRESS`
+to target your Ops Manager VM using the BOSH CLI.
+Log in using the BOSH Director credentials:
+    <pre class="terminal">
+    $ bosh target 10.0.0.6
+    Target set to 'Ops Manager'
+    Your username: director
+    Enter password: *****
+    Logged in as 'director'
+    </pre>
+
+1. Run `bosh deployments` to view information about your deployment.
+    <pre class="terminal">
+    $ bosh deployments
+	+-------------------------+--------------+-------------------------------+
+	| Name                    | Release(s)   | Stemcell(s)                   |
+	+-------------------------+--------------+-------------------------------+
+	| cf-2a8c2e075b8b84b46b5c | cf-154       | bosh-vsphere-esxi-ubuntu/14   |
+	+-------------------------+--------------+-------------------------------+
+    </pre>
+
+1. Using the information returned by the `bosh deployments` command, run `bosh
+export compiled_packages RELEASE-NAME STEMCELL-NAME ./compiled_packages` to
+export the compiled package to the `compiled_packages` directory.
+    <pre class="terminal">
+    $ bosh export compiled\_packages cf-154 bosh-vsphere-esxi-ubuntu/14 ./compiled\_packages
+    Exported compiled packages to ./compiled\_packages/cf-154-bosh-vsphere-esxi-ubuntu/14.tgz.
+    </pre>
+
+1. When creating your .pivotal zip file, include the exported .tgz file.
 
 ## <a id='install-file'></a> Understanding the Installation file ##
 
