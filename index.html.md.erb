@@ -84,7 +84,7 @@ form_types:                                                # [8]
               label: Changes
               description: Number of changes to save in the elapsed seconds
 
-property_blueprints:
+property_blueprints:                                       # [10a]
   - name: snapshots
     type: collection
     configurable: true
@@ -232,7 +232,13 @@ job_types:                                                 # [11]
 7. post\_deploy\_errands: An array of BOSH errands that run after a successful deployment. The name of the errand must correspond with the job.
 8. form\_types: Each form that is displayed for user input is generated from a form type.
 9. property\_input: An HTML input for a form is a reference to a property\_blueprint on a job\_type (see below).
-10. Collections. A collection is a data structure containing multiple property inputs, a bit like a database table. When rendered as HTML the collection will display add, edit, and delete indicators. A user can create many records in a collection.
+10. Collections. A collection is a data structure containing multiple property inputs, a bit like a database table. When rendered as HTML the collection will display add, edit, and delete indicators. A user can create many records in a collection.<br /></br />
+    Note that the `reference: .snapshots` key-value pair in the property\_inputs
+	section of the redis\_snapshotting\_collection references [10a], a global
+	property\_blueprints section.
+	This property\_blueprints section describes the global .snapshots collection
+	property, and not the property\_blueprints on a job\_type.
+
 11. job\_types: A list of the jobs that correspond with the job names in your BOSH manifest.
 12. resource_definitions: These are the sections that create the sizing table in Ops Manager's resource page. Note: CPU must be a power of 2.
 13. configurable: Must be true for user to edit, otherwise it is disabled in the table or form.
