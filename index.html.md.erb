@@ -768,9 +768,11 @@ The first, and simplest, value that must be migrated is the product version. Say
 name: p-redis
 product_version: 1.0.0.3
 metadata_version: "1.1"
+```
 
 A content_migration yaml to migrate this version to the new 2.0.0.0 release would look like this:
 
+```
 product: redis
 installation_version: "1.1"
 to_version: "2.0.0.0"
@@ -889,9 +891,9 @@ migrations:
         to: "2.0.0.0"
       - type: update
         selector: jobs.[type=redis].properties.[definition=credentials]
-     to: redis_password
+        to: redis_password
       - type: delete
-      jobs.[type=redis].properties.[definition=credentials].value.identity
+        selector: jobs.[type=redis].properties.[definition=credentials].value.identity
 ```
 
 ## <a id='verifier'></a>Verifiers ##
