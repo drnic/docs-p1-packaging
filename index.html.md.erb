@@ -13,11 +13,13 @@ This document might be difficult to follow unless you have a fully functional BO
 
 ## <a id='opsmanager'></a> What is Ops Manager? ##
 
-Pivotal Ops Manager is visual interface for installing and upgrading distributed software in the cloud. In its first, it is a vSphere Virtual Appliance that launches a Ruby on Rails application and orchestrates Pivotal's BOSH platform to manage virtual machines on vSphere. As of this writing, it can install Cloud Foundry, MySQL, Rabbit MQ, Pivotal HD, and any other product that has been packaged as a BOSH release.
+Pivotal Ops Manager is visual interface for installing and upgrading distributed software in the cloud. It is a vSphere Virtual Appliance that launches a Ruby on Rails application and orchestrates Pivotal's BOSH platform to manage virtual machines on vSphere. As of this writing, it can install Cloud Foundry, MySQL, Rabbit MQ, Pivotal HD, and any other product that has been packaged as a BOSH release.
 
 ## <a id='package'></a> How should a product be packaged? ##
 
-The Ops Manager team refers to a packaged product as a "product zip" because it is archived using .zip format. The extension, however, should be .pivotal, to prevent users from extracting the .zip. The contents of that archive are the top-level directories listed below.
+The Ops Manager team refers to a packaged product as a "product zip" because it is archived using .zip format. The extension, however, should be .pivotal, to prevent users from extracting the .zip. Be sure to create and distribute an archive that uses the final release files of your product, and not development files. 
+
+The contents of the archive are the top-level directories listed below.
 
 <p class='note'><strong>Note</strong>: Creating a product zip from folders as subdirectories of other folders is not supported.</p>
 
@@ -470,7 +472,7 @@ When a user clicks the Install or Apply Changes buttons in Ops Manager, a BOSH d
 
 A BOSH manifest includes a number of properties for each job. These come from the job\_types in your product template, but the values the user entered are evaluated from the accessors listed in the table above. You can also create properties using the manifest section of your product template, which is most common for things that are neither entered by the user nor auto-generated.
 
-To refer to things that were either entered by a user, or auto generated, you can use a special reference syntax, which the Ops Manager team refers to as "spiff syntax." Please note that this is not the same as the spiff command line tool many of the other teams are using to generate manifests, it simply has a syntax that looks vaguely like spiff syntax.  You can also use Ruby's ERB syntax, but requires you to know something about the evaluation context and Ops Manager's internal object graph. It is not recommended that anyone use ERB.
+To refer to things that were either entered by a user, or auto generated, you can use a special reference syntax, which the Ops Manager team refers to as "spiff syntax." Note that this is not the same as the spiff command line tool many of the other teams are using to generate manifests, it simply has a syntax that looks vaguely like spiff syntax.  You can also use Ruby's ERB syntax, but requires you to know something about the evaluation context and Ops Manager's internal object graph. It is not recommended that anyone use ERB.
 
 You can do the following things with spiff-like syntax:
 
@@ -932,7 +934,7 @@ migrations:
 
 ## <a id='verifier'></a>Verifiers ##
 
-Product templates include two types of verifiers: form verifiers and install time verifiers. Most verifiers are built to check availability of resources and IP addresses or existence of network endpoints. If your product requires some kind of verifier, please let the team know so we can build it. Verifiers are not shown in the product template sections earlier in this document.
+Product templates include two types of verifiers: form verifiers and install time verifiers. Most verifiers are built to check availability of resources and IP addresses or existence of network endpoints. If your product requires some kind of verifier, let the team know so we can build it. Verifiers are not shown in the product template sections earlier in this document.
 
 ### Form Verifiers
 
