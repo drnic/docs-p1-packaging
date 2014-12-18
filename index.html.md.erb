@@ -614,13 +614,7 @@ Before you learn how to write content migrations, you must understand the struct
 
 To understand what the installation file looks like, you can login to your Ops Manager, decrypt, and view /var/tempest/workspaces/default/installation.yml
 
-This file is encrypted using the login password for the Ops Manager's admin user. You can decrypt it using this script as follows:
-
-```
-$ sudo wget http://bit.ly/1cW8tY7
-$ mv 1cW8tYz eos
-$ sudo ruby eos decrypt <admin_password> installation.yml decrypted.yml
-```
+This file is encrypted using the login password for the Ops Manager's admin user.
 
 After decrypting the installation metadata, you will see something like the following:
 
