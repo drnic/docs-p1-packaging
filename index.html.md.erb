@@ -1060,52 +1060,26 @@ OvaManager::Destroyer.new("mozzarella-dc", {
 }).clean_folder("Matt")
 ```
 
-## <a id='changes'></a> Changes from 1.0.0.1 to 1.1.0.0 ##
+## <a id='changes'></a> Changes from 1.3 to 1.4 ##
 
-The following changes were made between version 1.0.0.1 released in November of 2013 and 1.1.0.0 released in March 2014:
+The following changes were made between version 1.3 released in November 2014 and 1.4 released in February 2015:
 
-### install\_time\_verifiers
+### stemcell
 
-A product can now specify verifiers that can be run at install time (right after the user clicks the install button).
+You should remove your stemcell in order for your product to be IaaS-agnostic. Remove your stemcell from the "stemcells" subdirectory within your product directory as shown in the image below:
 
-The name of the verifier specifies the ruby class name of the verifier to run (look in the app/models/verifiers folder for available verifiers). The properties key specifies which properties are passed to the verifier to instantiate it.
+<%= image_tag("remove-stemcell.png") %>
 
-### form\_types
+Your product template should refer to stemcells by only version and OS, as the following example shows:
 
-Forms are now specified in the metadata with a form\_type key. Job types are now just containers for data and the UI is drawn from the form_types key. Each form type has a name (programmer facing), label (end user facing), a description string.
+<pre>
+stemcell_criteria:
+  os: ubuntu-trusty
+  version: '2818'
+  requires_cpi: false
+</pre>
 
-Forms can also optionally specify a verifier to run when the form is saved. They must also specify an array of property inputs that point to the properties in the jobs (i.e. reference: job-name.property-name).
+If you import or update a 1.3 product to AWS, note the following:
 
-### max\_in\_flight
-
-Job types must specify max\_in\_flight (integer or %)
-
-### property\_blueprint rename
-
-property\_definitions has been renamed to property_blueprints in job type
-
-### canaries
-
-The number of canaries (integer) can now be specified for a job_type
-
-### CPU as power of two
-
-CPU resource definition must specify a power\_of\_two constraint
-
-### MicroBOSH 1.1 features
-
-To take advantage of the following features, a product must specify a dependency on MicroBOSH 1.1:
-
-* compiled\_packages can be specified for a product
-* Product teams can specify jobs to deploy in parallel with serial: false
-
-Typed values:
-
-* Added network\_address\_list (comma separated list of network addresses)
-* Added secret (password field to replace credentials when identity is unnecessary).
-
-
-
-
-
-
+* After importing, use **Import Stemcell** in Ops Manager to upload the referenced stemcell version, "xen-hvm," for AWS.
+* If you update, your upload will contain unnecessary stemcell files.
