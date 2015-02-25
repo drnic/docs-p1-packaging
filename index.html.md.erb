@@ -954,16 +954,45 @@ Here is an excerpt from the Elastic Runtime product template that verifies that 
 install_time_verifiers:
   - name: Verifiers::SsoUrlVerifier
     properties:
-      - saml_login.sso_url
+      url: saml_login.sso_url
   - name: Verifiers::SmtpAuthenticationVerifier
     properties:
-      - consoledb.smtp_address
-      - consoledb.smtp_port
-      - consoledb.smtp_helo_domain
-      - consoledb.smtp_credentials
-      - consoledb.smtp_authentication
-      - consoledb.smtp_enable_starttls_auto
+      credentials: consoledb.smtp_credentials
+      address: consoledb.smtp_address
+      port: consoledb.smtp_port
+      helo_domain: consoledb.smtp_helo_domain
+      authentication: consoledb.smtp_authentication
+      enable_starttls_auto: consoledb.smtp_enable_starttls_auto
 ```
+
+### Verifier Definitions
+
+Parameters are key pair values, where the value is property reference whose type matches that of the parameter.
+
+**Name**: Verifiers::LDAPBindVerifier
+**Parameters**:
+- url: `ldap_url`
+- credentials: `simple_credentials`
+
+**Name**: Verifiers::SmtpAuthenticationVerifier
+**Parameters**:
+- credentials: `simple_crendentials`
+- address: `network_address`
+- port: `integer`
+- helo_domain: `domain`
+- authentication: `smtp_authentication`
+- enable_starttls_auto: `boolean`
+
+**Name**: Verifiers::SsoUrlVerifier
+**Parameters**:
+- url: `http_url`
+
+**Name**: Verifiers::WildcardDomainVerifier
+**Parameters**:
+- domain: `wildcard_domain`
+
+**Name**: Verifiers::StaticIpsVerifier
+**Parameters**: `none`
 
 ## <a id='tips'></a> Tips and Tricks for Metadata Authors ##
 
