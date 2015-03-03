@@ -140,7 +140,7 @@ job_types:                                                 # [11]
         optional: true                                     # [18]
 
     manifest: |                                            # [19]
-      redis.password: (( password.secret ))
+      redis.password: (( password.value ))
       redis.snapshots: (( .properties.snapshots.value ))
 
   - name: test-redis
@@ -849,30 +849,46 @@ install_time_verifiers:
 
 Parameters are key pair values where the value is property reference whose type matches that of the parameter.
 
-**Name**: Verifiers::LDAPBindVerifier
-**Parameters**:
-- url: `ldap_url`
-- credentials: `simple_credentials`
+```
+Name: Verifiers::LDAPBindVerifier
+Parameters:
+- url: ldap_url
+- credentials: simple_credentials
 
-**Name**: Verifiers::SmtpAuthenticationVerifier
-**Parameters**:
-- credentials: `simple_credentials`
-- address: `network_address`
-- port: `integer`
-- helo_domain: `domain`
-- authentication: `smtp_authentication`
-- enable_starttls_auto: `boolean`
+Name: Verifiers::SmtpAuthenticationVerifier
+Parameters:
+- credentials: simple_credentials
+- address: network_address
+- port: integer
+- helo_domain: domain
+- authentication: smtp_authentication
+- enable_starttls_auto: boolean
 
-**Name**: Verifiers::SsoUrlVerifier
-**Parameters**:
-- url: `http_url`
+Name: Verifiers::SsoUrlVerifier
+Parameters:
+- url: http_url
 
-**Name**: Verifiers::WildcardDomainVerifier
-**Parameters**:
-- domain: `wildcard_domain`
+Name: Verifiers::WildcardDomainVerifier
+Parameters:
+- domain: wildcard_domain
 
-**Name**: Verifiers::StaticIpsVerifier
-**Parameters**: `none`
+Name: Verifiers::StaticIpsVerifier
+Parameters: none
+
+Name: Verifiers::MysqlDatabaseVerifier
+Parameters:
+- host: network_address or string
+- port: port
+- username: string
+- password: string or secret
+- database: string
+
+Name: Verifiers::BlobstoreVerifier
+Parameters:
+- access_key_id: string
+- secret_access_key: string or secret
+- bucket_name: string
+```
 
 ## <a id='tips'></a> Tips and Tricks for Metadata Authors ##
 
