@@ -17,14 +17,11 @@ Pivotal Ops Manager is visual interface for installing and upgrading distributed
 
 ## <a id='package'></a> How should a product be packaged? ##
 
-The Ops Manager team refers to a packaged product as a "product zip" because it is archived using .zip format. The extension, however, should be .pivotal, to prevent users from extracting the .zip. Be sure to create and distribute an archive that uses the final release files of your product, and not development files. 
+The Ops Manager team refers to a packaged product as a "product zip" because it is archived using .zip format. The extension, however, should be .pivotal, to prevent users from extracting the .zip. Be sure to create and distribute an archive that uses the final release files of your product, and not development files.
 
 The contents of the archive are the top-level directories listed below.
 
 <p class='note'><strong>Note</strong>: Creating a product zip from folders as subdirectories of other folders is not supported.</p>
-
-### <a id='stemcells'></a> Product Package - Stemcells Directory ###
-The stemcells directory contains stemcells for your release.
 
 ### <a id='releases'></a> Product Package - Releases Directory ###
 
@@ -41,15 +38,11 @@ To understand how to author product templates / metadata, let's look at an examp
 ---
 name: p-redis                                              # [1]
 product_version: 1.0.0.6                                   # [1]
-metadata_version: "1.1"                                    # [2]
-stemcell:                                                  # [3]
-  name:    bosh-vsphere-esxi-ubuntu
-  file:    bosh-stemcell-1657-ubuntu.tgz
-  version: "1657"
-compiled_package:                                          # [4]
-  name:    redis
-  file:    redis-0.2-dev-ubuntu-1657.tgz
-  version: 0.2-dev
+metadata_version: "1.4"                                    # [2]
+stemcell_criteria:                                         # [3]
+  os:           ubuntu-trusty
+  requires_cpi: false
+  version:      "2858"
 releases:                                                  # [5]
   - name:    redis
     file:    redis-0.2-dev.tgz
@@ -59,7 +52,7 @@ releases:                                                  # [5]
     version: 0.16-dev
 label: Redis
 description: Redis is a key-value store that ...
-image: iVBORw0KGgoAAAANSUhEUgAAAG                          # [6]
+icon_image: iVBORw0KGgoAAAANSUhEUgAAAG                     # [6]
 rank: 1
 post_deploy_errands:
 - name: test-redis                                         # [7]
@@ -100,7 +93,8 @@ property_blueprints:                                       # [10a]
 job_types:                                                 # [11]
   - name: redis
     resource_label: redis label for resource page
-    template: redis
+    job_templates:
+      - redis
     release: redis
 
     resource_definitions:                                  # [12]
@@ -146,12 +140,13 @@ job_types:                                                 # [11]
         optional: true                                     # [18]
 
     manifest: |                                            # [19]
-      redis.password: (( password.secret ))
+      redis.password: (( password.value ))
       redis.snapshots: (( .properties.snapshots.value ))
 
   - name: test-redis
     resource_label: Test Redis
-    template: test-redis
+    job_templates:
+      - test-redis
     release: redis-errands-release
     errand: true                                           # [20]
     resource_definitions:
@@ -226,11 +221,10 @@ job_types:                                                 # [11]
 ```
 
 1. name and product\_version: These uniquely identify a product. Ops Manager allows "upgrades" between products with the same name in the metadata, and different product\_versions.
-2. metadata\_version: Every release of Ops manager expects a certain metadata schema. We are currently at 1.1.
-3. stemcell: refers to the stemcell you placed in the stemcells directory (also applies to releases)
-4. compiled\_package: Optional. You can include compiled packages in the compiled\_packages directory for faster install.
+2. metadata\_version: Every release of Ops manager expects a certain metadata schema. We are currently at 1.4.
+3. stemcell_criteria: refers to the desired stemcell.
 5. releases: An array of releases. BOSH Errand releases can be referred to here.
-6. image: A base64 encoded version of the logo for your image.
+6. icon_image: A base64 encoded version of the logo for your image.
 7. post\_deploy\_errands: An array of BOSH errands that run after a successful deployment. The name of the errand must correspond with the job.
 8. form\_types: Each form that is displayed for user input is generated from a form type.
 9. property\_input: An HTML input for a form is a reference to a property\_blueprint on a job\_type (see below).
@@ -252,23 +246,22 @@ job_types:                                                 # [11]
 19. manifest: Properties that you need to put in your BOSH manifest, underneath the appropriate job, are created here. This is how the form\_type's value is passed to the manifest (see example to the left). For more information on passing variables as property values, refer to the Manifest section.
 20. errand: Optional. true/false. Set to true to run this job as an errand. This must correspond to the post\_deploy\_errand listed in #7 above. For more information about errands, see [Understanding Lifecycle Errands](./lifecycle-errands.html).
 
-## <a id="blueprints"></a> More on Product Templates - Blueprints ##
+## <a id="blueprints"></a> More on Product Templates - Property Blueprints ##
 
 Specifying the type of a property blueprint determines how the field shows up in the UI. It also determines what validation gets done when the user submits a form. Certain types have special features, e.g. you can specify min/max constraints for integer types, and you can have the various credential types be auto-generated.
 
 For a type to show up in the UI it must be configurable.
 
-For each type, one or many accessors will below. It will be clear how to use these types when we look at manifest snippets.
+For each type, one or many accessors will be defined below. It will be clear how to use these types when we look at manifest snippets.
 
 ### string
 
-Renders as a text field if configurable.
-
 Accessor: value
+Rendered Content: text input
 
 ### integer
 
-Renders as a text field if configurable. These property definitions allow you to additionally specify constraints as follows:
+Allows you to additionally specify constraints as follows:
 
 ```
 name: my-prop
@@ -283,70 +276,167 @@ constraints:
 You don't need to specify constraints, and if you do, you can specify either min, or max, or both. The power\_of\_two constraint should be used for the cpu resource definition for products deployed on VMware vSphere or vCloud Air / vCloud.
 
 Accessor: value
+Rendered Content: text input
 
 ### boolean
 
-Renders as a checkbox if configurable.
+True/False value
 
 Accessor: value
+Rendered Content: checkbox
 
-### ca\_certificate
+### dropdown
 
-Specially created for Rabbit because of the way SSL is done with Rabbit clusters. Renders as a text area if configurable.
+```
+- name: favorite_color
+  type: dropdown_select
+  label: Favorite Color
+  configurable: true
+  default: red
+  options:
+    - name: red
+      label: Red
+    - name: navy_blue
+      label: Navy Blue
+```
 
 Accessor: value
+Rendered Content: Dropdown list of the options
 
 ### domain
 
-Used for things like foo.bar.com. Renders as a text field if configurable.
-
 Accessor: value
+Rendered Content: text input
 
 ### wildcard_domain
 
-Same as domain but can be used with a WildcardDomainVerifier.
+For use with a WildcardDomainVerifier.
 
 Accessor: value
+Rendered Content: text input
+
+### uuid
+
+Accessor: value
+Rendered Content: Not available
+Generates: UUID
+
+### string_list
+
+Takes a comma delimited list of strings. The value is an array of non-empty strings from the input.
+
+Accessor: value
+Rendered Content: text input
+
+### text
+
+Accessor: value
+Rendered Content: textarea
+
+### selector
+
+Allows for different sets of property blueprints and manifest templates based on user selection.
+
+```yaml
+property_blueprints:
+  - name: selector_example
+    type: selector
+    configurable: true
+    default: Not Configured
+    option_templates:
+      - name: not_configured
+        select_value: Not Configured
+        named_manifests:
+          - name: my_snippet
+            manifest: |
+              is_this_configured: no
+      - name: custom_configuration
+        select_value: External DB
+        named_manifests:
+          - name: my_snippet
+            manifest: |
+              is_this_configured: yes
+              configured_property: (( .properties.selector_example.custom_configuration.your_name.value ))
+        property_blueprints:
+          - name: your_name
+            type: string
+            configurable: true
+```
+
+Accessors:
+  value: The select_value for the selected option
+  selected_option: Allows you to retrieve a parsed manifest snippet for the selected option
+  NAMED_OPTION: Provides access to the property blueprints for a named option
+Rendered Content: Radio buttons that show the nested property blueprints for the selected option.
+
+Example for the accessors:
+
+```yaml
+job_types:
+  - name: example_selector_usage
+    manifest: |
+      custom_configured_name: (( .properties.selector_example.custom_configuration.your_name.value ))
+      selected_option_manifest: (( .properties.selector_example.selected_option.parsed_manifest(my_snippet) ))
+```
+
+### ldap_url
+
+Valid LDAP URI
+
+Accessor: value
+Rendered Content: text input
+
+### collection
+
+A collection of entries. Each entry has all of the nested properties.
+
+```yaml
+property_blueprints:
+  - name: collection_example
+    type: collection
+    configurable: true
+    optional: false
+    property_blueprints:
+      - name: first_nested_property
+        type: string
+      - name: second_nested_property
+        type: string
+```
+
+Accessor: value
+Rendered Content: An add button that provides a form to enter nested property values. A list component that allows editing and removing existing entries.
 
 ### email
 
-Renders as a text field if configurable. Validates that it is a sensible email address, e.g. foo@bar.com
+Validates that it is an email address
 
 Accessor: value
-
-### email\_credentials
-
-Renders as a pair of text fields as configurable, where the second field will be masked out with asterisks (******).
-
-Accessors: identity, password
-
-### host\_mapping
-
-Renders as text area. Parses and validates as host mappings.
-
-Accessors: value
+Rendered Content: text input
 
 ### http\_url
 
-Full URL with http or https protocol. Renders as text field.
+Full URL with http or https protocol
 
 Accessors: value
+Rendered Content: text input
 
 ### ip\_address
 
-e.g. 1.2.3.4. Renders as text field.
+Validates a single IPv4 address
 
 Accessor: value
+Rendered Content: text input
 
 ### ip\_ranges
 
-Comma-separated list of single IP addresses and IP ranges of the form 1.2.3.4-1.2.3.200. Renders as text input.
+Comma-separated list of single IPv4 addresses and/or IPv4 ranges of the form 1.2.3.4-1.2.3.200
 
 Accessor: value, parsed\_ip\_ranges (array)
+Rendered Content: text input
 
 ### multi\_select\_options
 
-Renders a list of checkboxes (kind of like a multi-boolean). When giving a property definition this type, you must also specify a list of options as follows:
+When giving a property definition this type, you must also specify a list of options as follows:
 
 ```
 name: my-prop
@@ -361,112 +451,127 @@ options:
     label: Checkbox 3
 ```
 
-The value of such a property, that you'll have access to in the manifest parts of your metadata, will be an array of the names of the checked boxes.
-
-Accessor: value (array of strings)
+Accessor: value (array of selected option names)
+Rendered Content: checkbox(es)
 
 ### network\_address\_list
 
 Comma separated list of network addresses
 
 Accessor: value, parsed\_network\_addresses (array)
+Rendered Content: text input
 
 ### network\_address
 
 IP address, domain, or single host-name. Renders as a text field.
 
 Accessor: value
-
-### network\_address\_port\_pair
-
-Renders as two text fields, the first one is validates as a network address, and the second as a port (i.e. an integer between 0 and 65535).
-
-Accessor: address, port
+Rendered Content: text input
 
 ### port
 
-Integer between 0 and 65535. Renders as text field.
+Integer between 0 and 65535.
 
 Accessor: value
+Rendered Content: text input
 
 ### rsa\_cert\_credentials
 
-A triple of private key, cert, and csr. If configurable, then in the UI it only renders a field for the private key and cert (both as text areas).
+A triple of private key, cert, and csr.
 
 Accessors: public\_key\_pem, cert\_and\_private\_key\_pems
+Rendered Content: textarea fields for the private key and cert
+Generates: valid RSA private key, CSR, self-signed cert. All in PEM format.
 
 ### rsa\_pkey\_credentials
 
-Just an RSA private key. Not supported in UI, so don't make it configurable.
+RSA private key
 
 Accessors: public\_key\_pem, private\_key\_pem
+Rendered Content: Not available
+Generates: valid RSA private key
 
 ### salted\_credentials
 
-A triple of identity, password, and salt. Not supported in UI, so don't make it configurable.
+A triple of identity, password, and salt.
 
 Accessors: sha512\_hashed\_password, identity, salt, password
+Rendered Content: Not available
+Generates: identity, salt, password
 
 ### simple\_credentials
 
-A pair of identity and password. Any strings will do. Renders as two text fields in the UI, with the password one being masked out with asterisks (******).
+A pair of identity and password.
 
 Accessors: identity, password
+Rendered Content: text input for identity and password input for password
+Generates: identity, password
 
 ### secret
 
-A string that renders as a single password text input
-
 Accessor: secret
+Rendered Content: password input
+Generates: secret
 
 ### smtp\_authentication
 
-Renders as a dropdown where you can select from 'plain', 'login', and 'cram\_md5'. Specifically for Apps Manager, as this gets passed on to ActionMailer.
+Authentication type for SMTP
 
 Accessor: value
+Rendered Content: dropdown where you can select from 'plain', 'login', and 'cram\_md5'
 
-## <a id="random"></a> More on Product Templates - Types with Random Values ##
+##  <a id='opsmanager_accessors'></a> Ops Manager provided accessors
 
-You may wish to have some properties randomly generated rather than given by the user. Currently this behavior is supported for the various \_credentials types. To trigger auto-generation, the property\_definition must be non-configurable. All of these types are "compound values" in the sense that they are made up of more than one basic thing, e.g. email\_credentials is made up of an identity (email) and password. Auto-generation can be used to generate just part of a set of credentials when combined with partially specified default values. For example, a property blueprint like the following has its salt and password auto-generated, but not its identity.
+These accessors are available within a job's manifest by using double paren notation.
+
+Example usage:
 
 ```yaml
-     property_blueprints:
-...
+job_types:
+  - name: first_job
+    manifest: |
+      my_first_ip: (( first_ip ))
+      other_job_ip: (( .second_job.first_ip ))
+  - name: second_job
+```
+
+### Available accessors
+
+`availability_zone` : The availibility zone of the job instance
+
+`ephemeral_disk` : The size of the ephemeral disk attached to the job's VM, given in megabytes
+
+`first_ip` : The first ip assigned to the job
+
+`instances` : The number of job instances
+
+`ips` : An array of ips that the job has been assigned to
+
+`ips_by_availability_zone` : Provides a hash. The keys are the identifiers for the different availability zones. The value is an array of ips assigned to the job for that availability zone.
+
+`name` : Name of the job
+
+`persistent_disk` : The size of the persistent disk attached to the job's VM, given in megabytes
+
+`ram` : The RAM assigned to the job in megabytes
+
+## <a id='vm_credentials'></a> VM Credentials
+
+The vm_credentials property is **required** to be present on a job's property blueprints array. These are the credentials given to the created job VM.
+
+```yaml
+job_types:
+  - name: my_job
+    property_blueprints:
       - name: vm_credentials
         type: salted_credentials
         label: VM credentials
-     configurable: false
+        configurable: false
         default:
           identity: vcap
-
 ```
 
-### email\_credentials
-
-Consists of identity and password. password can be auto-generated at deploy-time, but identity will not, so if you want the password auto-generated, specify a default for the identity.
-
-### rsa\_cert\_credentials
-
-Generates a valid RSA private key, a CSR, and a self-signed cert. All in PEM format.
-
-### rsa\_pkey\_credentials
-
-Generates a valid RSA private key (and there's a helper method to access the public key if needed)
-
-### salted\_credentials
-
-Generates an identity, salt, and password.
-
-### simple\_credentials
-
-Generates an identity and password.
-
-### secret
-
-Generates a password.
-
-
-## <a id='manifestsnips'></a> More on Product Templates - Manifest Snippets
+## <a id='manifest'></a> More on Product Templates - Manifest
 
 When a user clicks the Install or Apply Changes buttons in Ops Manager, a BOSH deployment manifest is generated and a BOSH deploy begins.
 
@@ -474,7 +579,7 @@ A BOSH manifest includes a number of properties for each job. These come from th
 
 To refer to things that were either entered by a user, or auto generated, you can use a special reference syntax, which the Ops Manager team refers to as "spiff syntax." Note that this is not the same as the spiff command line tool many of the other teams are using to generate manifests, it simply has a syntax that looks vaguely like spiff syntax.  You can also use Ruby's ERB syntax, but requires you to know something about the evaluation context and Ops Manager's internal object graph. It is not recommended that anyone use ERB.
 
-You can do the following things with spiff-like syntax:
+Double parens will allow you to reference properties and job attributes.
 
 ```
 
@@ -524,11 +629,10 @@ Here's how this looks in Elastic Runtime's product template:
 name: cf
 product_version: 1.0.0.1
 metadata_version: "1.1"
-stemcell:
-  name: bosh-vsphere-esxi-ubuntu
-  version: "1266"
-  file: bosh-stemcell-1266-vsphere-esxi-ubuntu.tgz
-  md5: e1cbb680bee9eda8ba7e81ff0b3421a8
+stemcell_criteria:
+  os: ubuntu-trusty
+  version: "2858"
+  requires_cpi: false
 releases:
   - name: cf
     version: "147.20-dev"
@@ -549,241 +653,17 @@ job_types:
   - name: database-server
     label: My DB Server
     resource_label: My DB Server
-    description: Multi-tenant DB server.
-    template: db-server
+    description: Multi-tenant DB server
+    job_templates:
+      - db-server
     requires_product_versions:
-       - name: cf
-         version: "~> 1.0"
+      - name: cf
+        version: "~> 1.0"
 ```
 
 ## <a id='migrations'></a>Product Package - content\_migrations directory ##
 
 The content migrations directory contains yaml files that migrate installation data for products they previously installed. As of this writing we are within the 1.x.x.x release cycle, and thus all previously released product installations should be able to be migrated to the next. If you change the product template structure, like add, edit, or delete a job\_type, or property\_blueprint, you will need to create a content\_migration so that the customer's installation can migrate to these new settings.
-
-## <a id='compiledpackages'></a>Product Package - compiled_packages directory ##
-
-The BOSH compiled packages feature allows you to compile a package once, then
-reuse the same compiled package each time you deploy.
-If you do not use this feature, BOSH boots a compilation VM and compiles your
-package each time you deploy.
-
-To use the compiled packages feature, follow the instructions below on your
-local client.
-
-<p class='note'><strong>Note</strong>: The version of the BOSH CLI on your local
-	client must match the version of BOSH installed on the Ops Manager VM.</p>
-
-1. Deploy your package.
-1. Create a compiled_packages directory within your package directory.
-1. From the package directory, run `bosh target OPS-MANAGER-DIRECTOR-IP-ADDRESS`
-to target your Ops Manager VM using the BOSH CLI.
-Log in using the BOSH Director credentials:
-    <pre class="terminal">
-    $ bosh target 10.0.0.6
-    Target set to 'Ops Manager'
-    Your username: director
-    Enter password: *****
-    Logged in as 'director'
-    </pre>
-
-1. Run `bosh deployments` to view information about your deployment.
-    <pre class="terminal">
-    $ bosh deployments
-	+-------------------------+--------------+-------------------------------+
-	| Name                    | Release(s)   | Stemcell(s)                   |
-	+-------------------------+--------------+-------------------------------+
-	| cf-2a8c2e075b8b84b46b5c | cf-154       | bosh-vsphere-esxi-ubuntu/14   |
-	+-------------------------+--------------+-------------------------------+
-    </pre>
-
-1. Using the information returned by the `bosh deployments` command, run `bosh
-export compiled_packages RELEASE-NAME STEMCELL-NAME ./compiled_packages` to
-export the compiled package to the `compiled_packages` directory.
-    <pre class="terminal">
-    $ bosh export compiled\_packages cf-154 bosh-vsphere-esxi-ubuntu/14 ./compiled\_packages
-    Exported compiled packages to ./compiled\_packages/cf-154-bosh-vsphere-esxi-ubuntu/14.tgz.
-    </pre>
-
-1. When creating your .pivotal zip file, include the exported .tgz file.
-
-## <a id='install-file'></a> Understanding the Installation file ##
-
-Pivotal Ops Manager has two types of YAML files it cares about: (1) product templates and (2) an "installation file". Product templates are authored by you. It is used by Ops Manager to create forms and get user input. This file is never altered as a result of user input.  The installation file is where all the user-entered data is stored, along with any auto-generated values such as non-configurable credentials, and IPs allocated to jobs.  The job\_types and property\_blueprints of the product template files inform what the jobs and properties look like in the installation file.  At install time, BOSH manifests are generated by first creating a template out of some boilerplate that Ops Manager provides and the "manifest" sections of the job\_types in your product templates, and then rendering that template using values from the installation file.
-
-Before you learn how to write content migrations, you must understand the structure of the installation file, as this is what you are migrating. You are not migrating the product template that you authored. This is a source of confusion for most.
-
-To understand what the installation file looks like, you can login to your Ops Manager, decrypt, and view /var/tempest/workspaces/default/installation.yml
-
-This file is encrypted using the login password for the Ops Manager's admin user.
-
-After decrypting the installation metadata, you will see something like the following:
-
-```
----
-installation_version: !binary |-
-  MS4x
-infrastructure:
-  type: vsphere
-  file_system:
-    microbosh_vm_folder: pivotal_cf_vms_1da14f53e678361b2c32
-    microbosh_template_folder: pivotal_cf_templates_1da14f53e678361b2c32
-    microbosh_disk_path: pivotal_cf_disk_1da14f53e678361b2c32
-components:
-- type: microbosh
-  guid: microbosh-15282863e97a58c4507a
-  installation_name: microbosh-15282863e97a58c4507a
-  product_version: 1.1.0.0
-  jobs:
-  - type: director
-    guid: director-9fb5c60aed802815ef0d
-    installation_name: director
-    instances:
-    - definition: instances
-      value: 1
-    resources:
-    - definition: ram
-      value: 3072
-    - definition: ephemeral_disk
-      value: 16384
-    - definition: persistent_disk
-      value: 20480
-    - definition: cpu
-      value: 4
-    properties:
-    - definition: vm_credentials
-      value:
-        identity: vcap
-        salt: !binary |-
-          MjMwOGU2MmU1YjJjNDE4ZQ==
-        password: !binary |-
-          N2Q0OGI0NWM5ZmZhYzMwYg==
-    - definition: agent_credentials
-      value:
-        identity: vcap
-        password: !binary |-
-          ODc3MzNmODllMjVlNDI2NGU5ZDU=
-    - definition: director_credentials
-      value:
-        identity: director
-        password: !binary |-
-          MjNkMjMwZTdlNTBiZDcxZDAyZDc=
-    - definition: nats_credentials
-      value:
-        identity: nats
-        password: !binary |-
-          ZGZkNTQ5ZGM1NjJkNjY2MmIxYzA=
-    - definition: redis_credentials
-      value:
-        identity: redis
-        password: !binary |-
-          Zjg1OTM1Yjc2ZDJmNzRjNjg3NmM=
-    - definition: postgres_credentials
-      value:
-        identity: postgres
-        password: !binary |-
-          MTY0ZjhlNDkzYTM4YjBlMjJlNzk=
-    - definition: blobstore_credentials
-      value:
-        identity: blobstore
-        password: !binary |-
-          Mzg5MDg5ZDU3ZDFkMjFjYzczOTY=
-    - definition: health_monitor_credentials
-      value:
-        identity: health_monitor
-        password: !binary |-
-          NGRjYTQ2Njk1MDYxNDYzOWUxYjU=
-    - definition: director_ssl
-      value:
-        private_key_pem: !binary |-
-    - definition: resurrector_enabled
-  properties:
-  - definition: infrastructure
-    value: vsphere
-  - definition: vcenter_ip
-    value: 172.16.66.3
-  - definition: login_credentials
-    value:
-      identity: root
-      password: vmware
-  - definition: network
-    value: VM Network
-  - definition: datacenter
-    value: pineapple-dc
-  - definition: cluster
-    value: pineapple-cl
-  - definition: datastore
-    value: pineapple-ds
-  - definition: resource_pool
-    value: gold
-  - definition: subnet
-    value: 172.16.66.0/23
-  - definition: reserved_ip_ranges
-    value: 172.16.66.1-172.16.67.1, 172.16.67.100-172.16.67.255
-  - definition: dns
-    value: 10.80.130.1
-  - definition: gateway
-    value: 172.16.66.1
-  - definition: ntp_servers
-    value: 10.80.130.1
-  ips:
-    director-9fb5c60aed802815ef0d:
-    - 172.16.67.2
-    dynamic_for_static:
-    - 172.16.67.3
-- type: redis
-  guid: redis-695b43f28ce9cf76610f
-  installation_name: redis-695b43f28ce9cf76610f
-  product_version: 1.0.0.6
-  jobs:
-  - type: redis
-    guid: redis-81af61fabd99bc1a1486
-    installation_name: redis
-    instances:
-    - definition: instances
-      value: 1
-    resources:
-    - definition: ram
-      value: 1024
-    - definition: ephemeral_disk
-      value: 2048
-    - definition: persistent_disk
-      value: 3072
-    - definition: cpu
-      value: 1
-    properties:
-    - definition: vm_credentials
-      value:
-        identity: vcap
-        salt: !binary |-
-          Yzk0ZGFmZDY4Nzc0MTc1OQ==
-        password: !binary |-
-          NDY5MjZjODhjNGQ1ZTcyNw==
-    - definition: credentials
-      value:
-        identity: matt
-        password: reider
-  - type: compilation
-    guid: compilation-2794aeafd991cbac844d
-    installation_name: compilation
-    instances:
-    - definition: instances
-      value: 1
-    resources:
-    - definition: ram
-      value: 1024
-    - definition: ephemeral_disk
-      value: 2048
-    - definition: persistent_disk
-      value: 8192
-    - definition: cpu
-      value: 1
-  ips:
-    redis-81af61fabd99bc1a1486:
-    - 172.16.67.44
-    compilation-2794aeafd991cbac844d:
-    - 172.16.67.45
-    dynamic_for_static: []
-```
 
 ## <a id='upgrades'></a>How are Upgrades Packaged? ##
 
@@ -969,30 +849,46 @@ install_time_verifiers:
 
 Parameters are key pair values where the value is property reference whose type matches that of the parameter.
 
-**Name**: Verifiers::LDAPBindVerifier
-**Parameters**:
-- url: `ldap_url`
-- credentials: `simple_credentials`
+```
+Name: Verifiers::LDAPBindVerifier
+Parameters:
+- url: ldap_url
+- credentials: simple_credentials
 
-**Name**: Verifiers::SmtpAuthenticationVerifier
-**Parameters**:
-- credentials: `simple_credentials`
-- address: `network_address`
-- port: `integer`
-- helo_domain: `domain`
-- authentication: `smtp_authentication`
-- enable_starttls_auto: `boolean`
+Name: Verifiers::SmtpAuthenticationVerifier
+Parameters:
+- credentials: simple_credentials
+- address: network_address
+- port: integer
+- helo_domain: domain
+- authentication: smtp_authentication
+- enable_starttls_auto: boolean
 
-**Name**: Verifiers::SsoUrlVerifier
-**Parameters**:
-- url: `http_url`
+Name: Verifiers::SsoUrlVerifier
+Parameters:
+- url: http_url
 
-**Name**: Verifiers::WildcardDomainVerifier
-**Parameters**:
-- domain: `wildcard_domain`
+Name: Verifiers::WildcardDomainVerifier
+Parameters:
+- domain: wildcard_domain
 
-**Name**: Verifiers::StaticIpsVerifier
-**Parameters**: `none`
+Name: Verifiers::StaticIpsVerifier
+Parameters: none
+
+Name: Verifiers::MysqlDatabaseVerifier
+Parameters:
+- host: network_address or string
+- port: port
+- username: string
+- password: string or secret
+- database: string
+
+Name: Verifiers::BlobstoreVerifier
+Parameters:
+- access_key_id: string
+- secret_access_key: string or secret
+- bucket_name: string
+```
 
 ## <a id='tips'></a> Tips and Tricks for Metadata Authors ##
 
@@ -1091,7 +987,21 @@ OvaManager::Destroyer.new("mozzarella-dc", {
 
 ## <a id='changes'></a> Changes from 1.3 to 1.4 ##
 
+You can import your existing 1.3 product into a Ops Manager 1.4. To take adavantage of 1.4 features, you will need to update the following pieces of your metadata.
+
 The following changes were made between version 1.3 released in November 2014 and 1.4 released in February 2015:
+
+
+### metadata_version
+
+The value should be 1.4
+
+### icon_image
+
+Old key: `image`
+New key: `icon_image`
+
+(128x128) format instead of the old image (163x110). The new icon should be centered with the product "label" text displayed centered underneath.
 
 ### stemcell
 
@@ -1104,7 +1014,7 @@ Your product template should refer to stemcells by only version and OS, as the f
 <pre>
 stemcell_criteria:
   os: ubuntu-trusty
-  version: '2818'
+  version: '2858'
   requires_cpi: false
 </pre>
 
@@ -1112,3 +1022,35 @@ If you import or update a 1.3 product to Amazon Web Services (AWS), note the fol
 
 * After importing, click **Import Stemcell** in Ops Manager to upload the referenced stemcell version, "xen-hvm," for AWS.
 * If you update, your upload will contain unnecessary stemcell files that take up space.
+
+### job_templates
+
+The 'template' key under individual jobs has been renamed to 'job_templates'. Furthermore, it only supports an array as value.
+
+### compiled_packages
+
+Since compiled packages are a product of a infrastructure-specific stemcell and a release, compiled packages are no longer supported.
+
+### New Ops Manager accessors
+
+ips_by_availability_zone
+
+Provides a hash. The keys are the identifiers for the different availability zones. The value is an array of ips assigned to the job for that availability zone.
+
+```yaml
+job_types:
+  - name: first_job
+    manifest: |
+      my_ips_by_az: (( ips_by_availability_zone ))
+```
+
+Will be expanded to:
+
+```yaml
+job_types:
+  - name: first_job
+    manifest: |
+      my_ips_by_az:
+        zone1-guid: [192.168.1.100, 192.168.1.101]
+        zone2-guid: [192.168.2.100]
+```
