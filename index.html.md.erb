@@ -29,7 +29,7 @@ The releases directory contains your product's release file. This is created usi
 
 ### <a id='template'></a> Product Package - Product Templates ###
 
-The metadata directory contains a yaml file, named whatever you wish, with the product template that Ops Manager needs to prompt the user and do an install. This product template references your release and stemcell, creates the user input forms, and generates a BOSH manifest when a user clicks Apply Changes or Install in Ops Manager.
+The metadata directory contains a YAML (.yml) file, named whatever you wish, with the product template that Ops Manager needs to prompt the user and do an install. This product template references your release and stemcell, creates the user input forms, and generates a BOSH manifest when a user clicks **Apply Changes** or **Install** in Ops Manager.
 
 To understand how to author product templates / metadata, let's look at an example and explain the elements of interest.
 
@@ -43,7 +43,7 @@ stemcell_criteria:                                         # [3]
   os:           ubuntu-trusty
   requires_cpi: false
   version:      "2858"
-releases:                                                  # [5]
+releases:                                                  # [4]
   - name:    redis
     file:    redis-0.2-dev.tgz
     version: 0.2-dev
@@ -52,19 +52,19 @@ releases:                                                  # [5]
     version: 0.16-dev
 label: Redis
 description: Redis is a key-value store that ...
-icon_image: iVBORw0KGgoAAAANSUhEUgAAAG                     # [6]
+icon_image: iVBORw0KGgoAAAANSUhEUgAAAG                     # [5]
 rank: 1
 post_deploy_errands:
-- name: test-redis                                         # [7]
+- name: test-redis                                         # [6]
 
-form_types:                                                # [8]
+form_types:                                                # [7]
   - name: Redis
     label: Redis
     description: This is my little Redis
-    property_inputs:                                       # [9]
+    property_inputs:                                       # [8]
       - reference: redis.password
 
-  - name: redis_snapshotting_collection                    # [10]
+  - name: redis_snapshotting_collection                    # [9]
       label: Snapshotting
       description: Create a snapshotting policy
       property_inputs:
@@ -79,7 +79,7 @@ form_types:                                                # [8]
               label: Changes
               description: Number of changes to save in the elapsed seconds
 
-property_blueprints:                                       # [10a]
+property_blueprints:                                       # [9a]
   - name: snapshots
     type: collection
     configurable: true
@@ -90,14 +90,14 @@ property_blueprints:                                       # [10a]
       - name: changes
         type: integer
 
-job_types:                                                 # [11]
+job_types:                                                 # [10]
   - name: redis
     resource_label: redis label for resource page
     job_templates:
       - redis
     release: redis
 
-    resource_definitions:                                  # [12]
+    resource_definitions:                                  # [11]
       - name: ram
         type: integer
         configurable: true
@@ -115,13 +115,13 @@ job_types:                                                 # [11]
 
       - name: cpu
         type: integer
-        configurable: true                                 # [13]
+        configurable: true                                 # [12]
         default: 1
 
-    static_ip: 0                                           # [14]
-    dynamic_ip: 1
-    max_in_flight: 1                                       # [15]
-    serial: false                                          # [16]
+    static_ip: 0                                           # [13]
+    dynamic_ip: 1                                          # [13] 
+    max_in_flight: 1                                       # [14]
+    serial: false                                          # [15]
 
     instance_definitions:
       - name: instances
@@ -129,7 +129,7 @@ job_types:                                                 # [11]
         configurable: true
         default: 1
 
-    property_blueprints:                                   # [17]
+    property_blueprints:                                   # [16]
       - name: vm_credentials
         type: salted_credentials
         default:
@@ -137,9 +137,9 @@ job_types:                                                 # [11]
      - name: password
         type: secret
         configurable: true
-        optional: true                                     # [18]
+        optional: true                                     # [17]
 
-    manifest: |                                            # [19]
+    manifest: |                                            # [18]
       redis.password: (( password.value ))
       redis.snapshots: (( .properties.snapshots.value ))
 
@@ -148,7 +148,7 @@ job_types:                                                 # [11]
     job_templates:
       - test-redis
     release: redis-errands-release
-    errand: true                                           # [20]
+    errand: true                                           # [19]
     resource_definitions:
     - name: ram
       type: integer
@@ -220,44 +220,44 @@ job_types:                                                 # [11]
         default: 1
 ```
 
-1. name and product\_version: These uniquely identify a product. Ops Manager allows "upgrades" between products with the same name in the metadata, and different product\_versions.
-2. metadata\_version: Every release of Ops manager expects a certain metadata schema. We are currently at 1.4.
-3. stemcell_criteria: refers to the desired stemcell.
+1. `name` and `product_version`: These uniquely identify a product. Ops Manager allows "upgrades" between products with the same `name` in the metadata, and different `product_version`s.
+2. `metadata_version`: Every release of Ops manager expects a certain metadata schema. We are currently at 1.4.
+3. `stemcell_criteria`: refers to the desired stemcell.
 5. releases: An array of releases. BOSH Errand releases can be referred to here.
-6. icon_image: A base64 encoded version of the logo for your image.
-7. post\_deploy\_errands: An array of BOSH errands that run after a successful deployment. The name of the errand must correspond with the job.
-8. form\_types: Each form that is displayed for user input is generated from a form type.
-9. property\_input: An HTML input for a form is a reference to a property\_blueprint on a job\_type (see below).
+6. `icon_image`: A base64 encoded version of the logo for your image.
+7. `post_deploy_errands`: An array of BOSH errands that run after a successful deployment. The name of the errand must correspond with the job.
+8. `form_types`: Each form that is displayed for user input is generated from a form type.
+9. `property_inputs`: An HTML input for a form is a reference to a `property_blueprint` on a `job_type` (see below).
 10. Collections. A collection is a data structure containing multiple property inputs, a bit like a database table. When rendered as HTML the collection will display add, edit, and delete indicators. A user can create many records in a collection.<br /></br />
-    Note that the `reference: .snapshots` key-value pair in the property\_inputs
-	section of the redis\_snapshotting\_collection references [10a], a global
-	property\_blueprints section.
-	This property\_blueprints section describes the global .snapshots collection
-	property, and not the property\_blueprints on a job\_type.
+    Note that the `reference: .snapshots` key-value pair in the `property_inputs`
+	section of the `redis_snapshotting_collection` references [9a], a global
+	`property_blueprints` section.
+	This `property_blueprints` section describes the global `.snapshots` collection
+	property, and not the `property_blueprints` on a `job_type`.
 
-11. job\_types: A list of the jobs that correspond with the job names in your BOSH manifest.
-12. resource_definitions: These are the sections that create the sizing table in Ops Manager's resource page. Note: CPU must be a power of 2.
-13. configurable: Must be true for user to edit, otherwise it is disabled in the table or form.
-14. static\_ip / dynamic\_ip: Corresponds to the BOSH setting for a job's IP allocation. If static\_ip is 0, dynamic\_ip must be 1 and vice versa. You should try and use dynamic\_ip when possible.
-15. max\_in\_flight: Can be either a number or a ratio marked by a '%' percentage symbol.
-16. serial: true/false. If false this job will be deployed in parallel with other jobs.
-17. property\_blueprints: There are two kinds of blueprints. Property blueprints, their settings, types and defaults are further explored in the Types section.
-18. optional: true/false. true means the value can be nil/blank. Defaults to false if this key is not specified.
-19. manifest: Properties that you need to put in your BOSH manifest, underneath the appropriate job, are created here. This is how the form\_type's value is passed to the manifest (see example to the left). For more information on passing variables as property values, refer to the Manifest section.
-20. errand: Optional. true/false. Set to true to run this job as an errand. This must correspond to the post\_deploy\_errand listed in #7 above. For more information about errands, see [Understanding Lifecycle Errands](./lifecycle-errands.html).
+11. `job_types`: A list of the jobs that correspond with the job names in your BOSH manifest.
+12. `resource_definitions`: These are the sections that create the sizing table in Ops Manager's resource page. Note: CPU must be a power of 2.
+13. `configurable`: Must be true for user to edit, otherwise it is disabled in the table or form.
+14. `static_ip` and `dynamic_ip`: Corresponds to the BOSH setting for a job's IP allocation. If `static_ip` is 0, `dynamic_ip` must be 1 and vice versa. You should use `dynamic_ip` when possible.
+15. `max_in_flight`: Can be either a number or a ratio marked by a '%' percentage symbol.
+16. `serial`: `true`/`false`. If `false`, this job will be deployed in parallel with other jobs.
+17. `property_blueprints`: There are two kinds of blueprints. Property blueprints, their settings, types and defaults are further explored in the Types section.
+18. `optional`: `true`/`false`. `true` means the value can be nil or blank. Defaults to `false` if this key is not specified.
+19. `manifest`: Properties that you need to put in your BOSH manifest, underneath the appropriate job, are created here. This is how the `form_type` value is passed to the manifest (see example to the left). For more information on passing variables as property values, refer to the [Manifest section](#manifest).
+20. `errand`: Optional. `true`/`false`. Set to `true` to run this job as an errand. This must correspond to the `post_deploy_errand` listed in #7 above. For more information about errands, see [Understanding Lifecycle Errands](./lifecycle-errands.html).
 
 ## <a id="blueprints"></a> More on Product Templates - Property Blueprints ##
 
 Specifying the type of a property blueprint determines how the field shows up in the UI. It also determines what validation gets done when the user submits a form. Certain types have special features, e.g. you can specify min/max constraints for integer types, and you can have the various credential types be auto-generated.
 
-For a type to show up in the UI it must be configurable.
+For a type to show up in the UI, it must be configurable.
 
-For each type, one or many accessors will be defined below. It will be clear how to use these types when we look at manifest snippets.
+For each type, one or many accessors are defined below. It will be clear how to use these types when we look at manifest snippets.
 
 ### string
 
-Accessor: value
-Rendered Content: text input
+* Accessor: value
+* Rendered Content: text input
 
 ### integer
 
@@ -273,17 +273,16 @@ constraints:
   power_of_two: true
 ```
 
-You don't need to specify constraints, and if you do, you can specify either min, or max, or both. The power\_of\_two constraint should be used for the cpu resource definition for products deployed on VMware vSphere or vCloud Air / vCloud.
+You do not need to specify constraints, and if you do, you can specify either min, or max, or both. The `power_of_two` constraint should be used for the cpu resource definition for products deployed on VMware vSphere or vCloud Air / vCloud.
 
-Accessor: value
-Rendered Content: text input
+* Accessor: value
+* Rendered Content: text input
 
 ### boolean
 
-True/False value
-
-Accessor: value
-Rendered Content: checkbox
+* True/False value
+* Accessor: value
+* Rendered Content: checkbox
 
 ### dropdown
 
@@ -300,38 +299,40 @@ Rendered Content: checkbox
       label: Navy Blue
 ```
 
-Accessor: value
-Rendered Content: Dropdown list of the options
+* Accessor: value
+* Rendered Content: dropdown list of the options
 
 ### domain
 
-Accessor: value
-Rendered Content: text input
+* Accessor: value
+* Rendered Content: text input
 
 ### wildcard_domain
 
 For use with a WildcardDomainVerifier.
 
-Accessor: value
-Rendered Content: text input
+* Accessor: value
+* Rendered Content: text input
 
 ### uuid
 
-Accessor: value
-Rendered Content: Not available
-Generates: UUID
+* Accessor: value
+* Rendered Content: Not available
+* Generates: UUID
 
 ### string_list
 
-Takes a comma delimited list of strings. The value is an array of non-empty strings from the input.
+Takes a comma-delimited list of strings.
 
-Accessor: value
-Rendered Content: text input
+* Accessor: value
+* Rendered Content: text input
+
+<p class="note"><strong>Note</strong>: The value is an array of non-empty strings from the input.</p>
 
 ### text
 
-Accessor: value
-Rendered Content: textarea
+* Accessor: value
+* Rendered Content: textarea
 
 ### selector
 
@@ -363,13 +364,13 @@ property_blueprints:
             configurable: true
 ```
 
-Accessors:
-  value: The select_value for the selected option
-  selected_option: Allows you to retrieve a parsed manifest snippet for the selected option
-  NAMED_OPTION: Provides access to the property blueprints for a named option
-Rendered Content: Radio buttons that show the nested property blueprints for the selected option.
+* Accessors:
+  * value: The `select_value` for the selected option
+  * selected_option: Allows you to retrieve a parsed manifest snippet for the selected option
+  * NAMED_OPTION: Provides access to the property blueprints for a named option
+* Rendered Content: Radio buttons that show the nested property blueprints for the selected option.
 
-Example for the accessors:
+Accessors example:
 
 ```yaml
 job_types:
@@ -381,10 +382,10 @@ job_types:
 
 ### ldap_url
 
-Valid LDAP URI
+Valid LDAP URI.
 
-Accessor: value
-Rendered Content: text input
+* Accessor: value
+* Rendered Content: text input
 
 ### collection
 
@@ -403,36 +404,36 @@ property_blueprints:
         type: string
 ```
 
-Accessor: value
-Rendered Content: An add button that provides a form to enter nested property values. A list component that allows editing and removing existing entries.
+* Accessor: value
+* Rendered Content: An add button that provides a form to enter nested property values. A list component that allows editing and removing existing entries.
 
 ### email
 
-Validates that it is an email address
+Validates that it is an email address.
 
-Accessor: value
-Rendered Content: text input
+* Accessor: value
+* Rendered Content: text input
 
 ### http\_url
 
-Full URL with http or https protocol
+Full URL with HTTP or HTTPS protocol.
 
-Accessors: value
-Rendered Content: text input
+* Accessors: value
+* Rendered Content: text input
 
 ### ip\_address
 
-Validates a single IPv4 address
+Validates a single IPv4 address.
 
-Accessor: value
-Rendered Content: text input
+* Accessor: value
+* Rendered Content: text input
 
 ### ip\_ranges
 
-Comma-separated list of single IPv4 addresses and/or IPv4 ranges of the form 1.2.3.4-1.2.3.200
+Comma-separated list of single IPv4 addresses and/or IPv4 ranges of the form '1.2.3.4-1.2.3.200.'
 
-Accessor: value, parsed\_ip\_ranges (array)
-Rendered Content: text input
+* Accessor: value, `parsed_ip_ranges` (array)
+* Rendered Content: text input
 
 ### multi\_select\_options
 
@@ -451,29 +452,29 @@ options:
     label: Checkbox 3
 ```
 
-Accessor: value (array of selected option names)
-Rendered Content: checkbox(es)
+* Accessor: value (array of selected option names)
+* Rendered Content: checkbox(es)
 
 ### network\_address\_list
 
-Comma separated list of network addresses
+Comma-separated list of network addresses.
 
-Accessor: value, parsed\_network\_addresses (array)
-Rendered Content: text input
+* Accessor: value, parsed\_network\_addresses (array)
+* Rendered Content: text input
 
 ### network\_address
 
 IP address, domain, or single host-name. Renders as a text field.
 
-Accessor: value
-Rendered Content: text input
+* Accessor: value
+* Rendered Content: text input
 
 ### port
 
 Integer between 0 and 65535.
 
-Accessor: value
-Rendered Content: text input
+* Accessor: value
+* Rendered Content: text input
 
 ### rsa\_cert\_credentials
 
@@ -485,44 +486,44 @@ Generates: valid RSA private key, CSR, self-signed cert. All in PEM format.
 
 ### rsa\_pkey\_credentials
 
-RSA private key
+RSA private key.
 
-Accessors: public\_key\_pem, private\_key\_pem
-Rendered Content: Not available
-Generates: valid RSA private key
+* Accessors: `public_key_pem`, `private_key_pem`
+* Rendered Content: Not available
+* Generates: valid RSA private key
 
 ### salted\_credentials
 
 A triple of identity, password, and salt.
 
-Accessors: sha512\_hashed\_password, identity, salt, password
-Rendered Content: Not available
-Generates: identity, salt, password
+* Accessors: `sha512_hashed_password`, identity, salt, password
+* Rendered Content: Not available
+* Generates: identity, salt, password
 
 ### simple\_credentials
 
 A pair of identity and password.
 
-Accessors: identity, password
-Rendered Content: text input for identity and password input for password
-Generates: identity, password
+* Accessors: identity, password
+* Rendered Content: text input for identity and password input for password
+* Generates: identity, password
 
 ### secret
 
-Accessor: secret
-Rendered Content: password input
-Generates: secret
+* Accessor: secret
+* Rendered Content: password input
+* Generates: secret
 
 ### smtp\_authentication
 
-Authentication type for SMTP
+Authentication type for SMTP.
 
-Accessor: value
-Rendered Content: dropdown where you can select from 'plain', 'login', and 'cram\_md5'
+* Accessor: value
+* Rendered Content: dropdown where you can select from 'plain', 'login', and 'cram\_md5'
 
-##  <a id='opsmanager_accessors'></a> Ops Manager provided accessors
+##  <a id='opsmanager_accessors'></a> Ops Manager-provided accessors
 
-These accessors are available within a job's manifest by using double paren notation.
+These accessors are available within the manifest for a job when you use double parentheses.
 
 Example usage:
 
@@ -537,27 +538,27 @@ job_types:
 
 ### Available accessors
 
-`availability_zone` : The availibility zone of the job instance
+`availability_zone`: The availibility zone of the job instance
 
-`ephemeral_disk` : The size of the ephemeral disk attached to the job's VM, given in megabytes
+`ephemeral_disk`: The size of the ephemeral disk attached to the job's VM, given in megabytes
 
-`first_ip` : The first ip assigned to the job
+`first_ip`: The first ip assigned to the job
 
-`instances` : The number of job instances
+`instances`: The number of job instances
 
-`ips` : An array of ips that the job has been assigned to
+`ips`: An array of ips that the job has been assigned to
 
-`ips_by_availability_zone` : Provides a hash. The keys are the identifiers for the different availability zones. The value is an array of ips assigned to the job for that availability zone.
+`ips_by_availability_zone`: Provides a hash. The keys are the identifiers for the different availability zones. The value is an array of ips assigned to the job for that availability zone.
 
-`name` : Name of the job
+`name`: Name of the job
 
-`persistent_disk` : The size of the persistent disk attached to the job's VM, given in megabytes
+`persistent_disk`: The size of the persistent disk attached to the job's VM, given in megabytes
 
-`ram` : The RAM assigned to the job in megabytes
+`ram`: The RAM assigned to the job in megabytes
 
 ## <a id='vm_credentials'></a> VM Credentials
 
-The vm_credentials property is **required** to be present on a job's property blueprints array. These are the credentials given to the created job VM.
+<p class="note"><strong>Note</strong>: The vm_credentials property is required to be present on a job property blueprints array. These are the credentials given to the created job VM.</p>
 
 ```yaml
 job_types:
@@ -573,13 +574,15 @@ job_types:
 
 ## <a id='manifest'></a> More on Product Templates - Manifest
 
-When a user clicks the Install or Apply Changes buttons in Ops Manager, a BOSH deployment manifest is generated and a BOSH deploy begins.
+When a user clicks the **Install** or **Apply Changes** buttons in Ops Manager, a BOSH deployment manifest is generated and a BOSH deploy begins.
 
-A BOSH manifest includes a number of properties for each job. These come from the job\_types in your product template, but the values the user entered are evaluated from the accessors listed in the table above. You can also create properties using the manifest section of your product template, which is most common for things that are neither entered by the user nor auto-generated.
+A BOSH manifest includes a number of properties for each job. These come from the `job_types` in your product template, but the values the user entered are evaluated from the accessors listed in the table above. You can also create properties using the manifest section of your product template, which is most common for things that are neither entered by the user nor auto-generated.
 
-To refer to things that were either entered by a user, or auto generated, you can use a special reference syntax, which the Ops Manager team refers to as "spiff syntax." Note that this is not the same as the spiff command line tool many of the other teams are using to generate manifests, it simply has a syntax that looks vaguely like spiff syntax.  You can also use Ruby's ERB syntax, but requires you to know something about the evaluation context and Ops Manager's internal object graph. It is not recommended that anyone use ERB.
+To refer to things that were either entered by a user, or auto generated, you can use a special reference syntax, which the Ops Manager team refers to as "spiff syntax." Note that this is not the same as the spiff command line tool many of the other teams are using to generate manifests, it simply has a syntax that looks vaguely like spiff syntax.
 
-Double parens will allow you to reference properties and job attributes.
+<p class="note"><strong>Note</strong>: You can use Ruby's ERB syntax, but requires you to know something about the evaluation context and Ops Manager's internal object graph. Use of ERB is not recommended.</p>
+
+Double parentheses allow you to reference properties and job attributes.
 
 ```
 
@@ -598,12 +601,12 @@ job_types:
         configurable: true
     manifest: |
       something:
-        something_else: (( bar.identity )) # this access the identity access on the "bar"
+        something_else: (( bar.identity )) # this accesses the identity access on the "bar"
        # property on this job (namely "foo")
         blah: (( bar.password ))
         hi: (( baz.value ))
       networkstuff:
-        my_ip: (( first_ip ))           # this access the first IP allocated to this job
+        my_ip: (( first_ip ))           # this accesses the first IP allocated to this job
         bobs_ip: (( .other_job.first_ip ))  # the leading . means to go up a level and find
                         # a different job in this metadata, namely
                         # "other_job", and then ask it for things such as
@@ -620,7 +623,7 @@ If your product relies on other products, or you have specific jobs that rely on
 
 Service brokers are a great example of why dependencies could be set at the job level. Service brokers have no purpose other than being used with Elastic Runtime, and they are tied to specific releases of the Cloud Controller. By setting dependency in the broker, and setting the number of instances to zero, a user could use the service independently without having to worry about it functioning with Elastic Runtime.
 
-You should specify provides\_product\_version in your product template, even though it appears somewhat redundant as "name" and "product\_version" capture the same information. Additionally, you may use requires\_product\_versions to depend on something else.  This can be specified at the top-level of a product template, implying the entire product depends on another one; or it can be specified at an individual job\_type level.
+You should specify `provides_product_version` in your product template, even though it appears somewhat redundant as "name" and "product_version" capture the same information. Additionally, you may use `requires_product_versions` to depend on something else.  This can be specified at the top-level of a product template, implying the entire product depends on another one; or it can be specified at an individual `job_type` level.
 
 Here's how this looks in Elastic Runtime's product template:
 
@@ -663,15 +666,15 @@ job_types:
 
 ## <a id='migrations'></a>Product Package - content\_migrations directory ##
 
-The content migrations directory contains yaml files that migrate installation data for products they previously installed. As of this writing we are within the 1.x.x.x release cycle, and thus all previously released product installations should be able to be migrated to the next. If you change the product template structure, like add, edit, or delete a job\_type, or property\_blueprint, you will need to create a content\_migration so that the customer's installation can migrate to these new settings.
+The content migrations directory contains YAML files that migrate installation data for products they previously installed. As of this writing we are within the 1.x.x.x release cycle, and thus all previously released product installations should be able to be migrated to the next. If you change the product template structure, like add, edit, or delete a `job_type`, or `property_blueprint`, you will need to create a `content_migration` so that the customer's installation can migrate to these new settings.
 
 ## <a id='upgrades'></a>How are Upgrades Packaged? ##
 
-When your team has a new release you must create a content migration. These migrations are yaml files with certain rules for updating the installation hash discussed in the previous section. This transformation uses a Ruby gem called Transmogrifier. The migration file must be placed in the content\_migrations directory in the product zip.
+When your team has a new release, you must create a content migration. These migrations are YAML files with certain rules for updating the installation hash discussed in the previous section. This transformation uses a Ruby gem called Transmogrifier. The migration file must be placed in the `content_migrations` directory in the product zip.
 
 ### Migrating the Product Version
 
-The first, and simplest, value that must be migrated is the product version. Say, for example, that your last release is 1.0.0.3 and you are going to release version 2.0.0.0 next week. Your last version's product template looks like this:
+The first and simplest value that must be migrated is the product version. Say, for example, that your last release is 1.0.0.3 and you are going to release version 2.0.0.0 next week. Your last version's product template looks like this:
 
 ```yaml
 ---
@@ -680,7 +683,7 @@ product_version: 1.0.0.3
 metadata_version: "1.1"
 ```
 
-A content_migration yaml to migrate this version to the new 2.0.0.0 release would look like this:
+A content_migration YAML to migrate this version to the new 2.0.0.0 release would look like this:
 
 ```
 product: redis
@@ -695,7 +698,7 @@ migrations:
         to: "2.0.0.0"
 ```
 
-Note: installation\_version is the schema version of the installation.yml file, which contains an installation's state. This is not the same as the metadata version, which refers to the schema of the product template that you are authoring.
+<p class="note"><strong>Note</strong>: <code>installation_version</code> is the schema version of the installation.yml file, which contains an installation's state. This is not the same as the metadata version, which refers to the schema of the product template that you are authoring.</p>
 
 If your customers have a couple of Redis versions released you can migrate more than one version with the same migration as follows:
 
@@ -723,7 +726,7 @@ The example above, in which you modified a version number, uses the update type 
 
 ### Example 1. Adding a New Property
 
-Imagine that your 2.0.0.0 Redis release has a new property called max\_memory. In this case, all you need to do is add this property to your product template so that Ops Manager will display it and set it in any new installation BOSH manifests. You do not need a content\_migration since the new installation file will be created when you click Apply Changes.
+Imagine that your 2.0.0.0 Redis release has a new property called `max_memory`. In this case, all you need to do is add this property to your product template so that Ops Manager will display it and set it in any new installation BOSH manifests. You do not need a `content_migration` since the new installation file will be created when you click **Apply Changes**.
 
 ```yaml
     property_blueprints:
@@ -742,7 +745,7 @@ Imagine that your 2.0.0.0 Redis release has a new property called max\_memory. I
 
 ### Example 2. Updating a Property Names
 
-Redis uses admin passwords, without user names. Our original product template has a property called credentials that uses a simple\_credentials type. Unfortunately there was no simple\_password type which just prompts for password (there will be soon). To refresh your memory:
+Redis uses admin passwords, without user names. Our original product template has a property called credentials that uses a `simple_credentials` type. Unfortunately there was no `simple_password` type which just prompts for password (there will be soon). To refresh your memory:
 
 ```yaml
      property_blueprints:
@@ -758,7 +761,7 @@ Redis uses admin passwords, without user names. Our original product template ha
 
 ```
 
-Imagine the new type called simple\_password was already available in Ops Manager. What would the steps be to migrate our password to this type?
+Imagine the new type called `simple_password` was already available in Ops Manager. What would the steps be to migrate our password to this type?
 First, we would need to modify our product template to the different type, give it a new name, and reference it by that name. Our new product template would look like this:
 
 ```yaml
@@ -783,7 +786,7 @@ Next, we would look at our installation file and see if there are things to migr
         password: reider
 ```
 
-Our Migration needs to change the name of property definition from credentials to redis\_password it would also be cleaner to delete the identity property as well.
+Our Migration needs to change the name of property definition from credentials to `redis_password` it would also be cleaner to delete the identity property as well.
 
 Our complete migration file is as follows:
 
@@ -812,7 +815,7 @@ Product templates include two types of verifiers: form verifiers and install tim
 
 ### Form Verifiers
 
-Form verifiers run when a user saves a form. You name the verifier in the form\_type section, under the name of the form. The following verifier checks that Elastic Runtime's router IP is free / available:
+Form verifiers run when a user saves a form. You name the verifier in the `form_type` section, under the name of the form. The following verifier checks that Elastic Runtime's router IP is free or available:
 
 ```yaml
   - name: router
@@ -826,7 +829,7 @@ Form verifiers run when a user saves a form. You name the verifier in the form\_
 
 ### Install Time Verifier Example
 
-Install time verifiers run when a user clicks the Apply Changes or Install buttons. Usually you will run the same verifiers at install or form save, but they are broken out in case there are exceptions.
+Install time verifiers run when a user clicks the **Apply Changes** or **Install** buttons. Usually you will run the same verifiers at install or form save, but they are broken out in case there are exceptions.
 
 Here is an excerpt from the Elastic Runtime product template that verifies that the SSO Appliance, and SMTP servers, are available at the addresses the user entered:
 
@@ -847,7 +850,7 @@ install_time_verifiers:
 
 ### Verifier Definitions
 
-Parameters are key pair values where the value is property reference whose type matches that of the parameter.
+Parameters are key-pair values where the value is property reference whose type matches that of the parameter.
 
 ```
 Name: Verifiers::LDAPBindVerifier
@@ -921,7 +924,7 @@ $ sudo service tempest-web start
 
 ### Restoring Previous Installation File
 
-There is an undocumented feature in Ops Manager to restore the previous version of the installation file's state, including all Stemcells and Releases that were part of that installation file. This should not be confused with restoring the installation (VMs) itself. To restore an installation's state browse to https://{your ops manager}/restore
+There is an undocumented feature in Ops Manager to restore the previous version of the installation file's state, including all Stemcells and Releases that were part of that installation file. This should not be confused with restoring the installation (VMs) itself. To restore an installation's state browse to `https://{your ops manager}/restore`.
 
 ### Starting Fresh
 
@@ -987,7 +990,7 @@ OvaManager::Destroyer.new("mozzarella-dc", {
 
 ## <a id='changes'></a> Changes from 1.3 to 1.4 ##
 
-You can import your existing 1.3 product into a Ops Manager 1.4. To take adavantage of 1.4 features, you will need to update the following pieces of your metadata.
+You can import your existing 1.3 product into a Ops Manager 1.4. To take advantage of 1.4 features, you must update the following pieces of your metadata.
 
 The following changes were made between version 1.3 released in November 2014 and 1.4 released in February 2015:
 
@@ -998,8 +1001,8 @@ The value should be 1.4
 
 ### icon_image
 
-Old key: `image`
-New key: `icon_image`
+* Old key: `image`
+* New key: `icon_image`
 
 (128x128) format instead of the old image (163x110). The new icon should be centered with the product "label" text displayed centered underneath.
 
@@ -1025,15 +1028,15 @@ If you import or update a 1.3 product to Amazon Web Services (AWS), note the fol
 
 ### job_templates
 
-The 'template' key under individual jobs has been renamed to 'job_templates'. Furthermore, it only supports an array as value.
+The 'template' key under individual jobs has been renamed to 'job_templates'. Furthermore, it only supports an array as a value.
 
 ### compiled_packages
 
-Since compiled packages are a product of a infrastructure-specific stemcell and a release, compiled packages are no longer supported.
+Since compiled packages are a product of an infrastructure-specific stemcell and a release, compiled packages are no longer supported.
 
 ### New Ops Manager accessors
 
-ips_by_availability_zone
+`ips_by_availability_zone`
 
 Provides a hash. The keys are the identifiers for the different availability zones. The value is an array of ips assigned to the job for that availability zone.
 
