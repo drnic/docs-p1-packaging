@@ -1,15 +1,15 @@
 ---
-breadcrumb: Pivotal CF Documentation
+breadcrumb: Pivotal Cloud Foundry Documentation
 title: Packaging Pivotal One Products
 ---
 
-This document is intended for product teams to learn how to package, distribute, and upgrade Pivotal One products across releases.
+This document is intended for product teams to learn how to package, distribute, and upgrade [Pivotal Cloud Foundry](https://network.pivotal.io/products/pivotal-cf) (PCF) products across releases.
 
 Important: Packaging custom products is an alpha feature supported through a Pivotal Professional Services engagement or as part of an Enterprise License Agreement.
 
 ## <a id='assumptions'></a>Assumptions ##
 
-This document might be difficult to follow unless you have a fully functional BOSH release of your product including a working manifest, release, and stemcell. You should also have a working knowledge of Pivotal Ops Manager and know, for example, what terms such as "resources page" or "product tile" refer to.
+This document might be difficult to follow unless you have a fully functional BOSH release of your product including a working manifest, release, and stemcell. You should also have a working knowledge of Pivotal Cloud Foundry Operations Manager and know, for example, what terms such as "resources page" or "product tile" refer to.
 
 ## <a id='opsmanager'></a> What is Ops Manager? ##
 
@@ -119,7 +119,7 @@ job_types:                                                 # [10]
         default: 1
 
     static_ip: 0                                           # [13]
-    dynamic_ip: 1                                          # [13] 
+    dynamic_ip: 1                                          # [13]
     max_in_flight: 1                                       # [14]
     serial: false                                          # [15]
 
