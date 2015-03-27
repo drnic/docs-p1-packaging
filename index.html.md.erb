@@ -623,7 +623,7 @@ If your product relies on other products, or you have specific jobs that rely on
 
 Service brokers are a great example of why dependencies could be set at the job level. Service brokers have no purpose other than being used with Elastic Runtime, and they are tied to specific releases of the Cloud Controller. By setting dependency in the broker, and setting the number of instances to zero, a user could use the service independently without having to worry about it functioning with Elastic Runtime.
 
-You should specify `provides_product_version` in your product template, even though it appears somewhat redundant as "name" and "product_version" capture the same information. Additionally, you may use `requires_product_versions` to depend on something else.  This can be specified at the top-level of a product template, implying the entire product depends on another one; or it can be specified at an individual `job_type` level.
+You should specify `provides_product_version` in your product template, even though it appears somewhat redundant as `name` and `product_version` capture the same information. Additionally, you may use `requires_product_versions` to depend on something else.  This can be specified at the top-level of a product template, implying the entire product depends on another one; or it can be specified at an individual `job_type` level.
 
 Here's how this looks in Elastic Runtime's product template:
 
