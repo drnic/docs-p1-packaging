@@ -687,7 +687,7 @@ A content_migration YAML to migrate this version to the new 2.0.0.0 release woul
 
 ```
 product: redis
-installation_version: "1.1"
+installation_schema_version: "1.5"
 to_version: "2.0.0.0"
 
 migrations:
@@ -698,13 +698,13 @@ migrations:
         to: "2.0.0.0"
 ```
 
-<p class="note"><strong>Note</strong>: <code>installation_version</code> is the schema version of the installation.yml file, which contains an installation's state. This is not the same as the metadata version, which refers to the schema of the product template that you are authoring.</p>
+<p class="note"><strong>Note</strong>: <code>installation_schema_version</code> is the schema version of the installation.yml file, which contains an installation's state. This is not the same as the metadata version, which refers to the schema of the product template that you are authoring.</p>
 
 If your customers have a couple of Redis versions released you can migrate more than one version with the same migration as follows:
 
 ```yaml
 product: redis
-installation_version: "1.1"
+installation_schema_version: "1.5"
 to_version: "2.0.0.0"
 
 migrations:
@@ -793,7 +793,7 @@ Our complete migration file is as follows:
 ```yaml
 ---
 product: redis
-installation_version: "1.1"
+installation_schema_version: "1.5"
 to_version: "2.0.0.0"
 
 migrations:
