@@ -2,8 +2,7 @@
 title: Creating a Pivotal Cloud Foundry Product Tile
 ---
 
-This topic describes the procedure for creating your own product tile for use in the <a
-href="https://network.pivotal.io/products/pivotal-cf">Pivotal Cloud Foundry</a> Ops Manager dashboard.
+This topic describes the procedure for creating your own product tile for use in the <a href="https://network.pivotal.io/products/pivotal-cf">Pivotal Cloud Foundry</a> Ops Manager dashboard.
 
 ## What is a Tile?
 
@@ -11,11 +10,13 @@ PCF Ops Manager install products in the cloud. Each installed product appears in
 
 ## What’s inside a Tile?
 
-A tile is an archived directory with a .pivotal file extension, containing the following subdirectories:
-	* Content_migrations **(optional)**: Migrations for when an earlier version is upgraded.
-	* Metadata **(required)**: The guts of the tile, including forms, manifest generation, and dependencies.
-	* Releases **(optional)**: Source code for the releases of the software product.
 
+A tile is an archived directory with a .pivotal file extension, containing the following subdirectories:
+<ul>
+    <li>Content_migrations **(optional)**: Migrations for when an earlier version is upgraded.</li>
+    <li>Metadata **(required)**: The guts of the tile, including forms, manifest generation, and dependencies.</li>
+    <li>Releases **(optional)**: Source code for the releases of the software product.></li>
+</ul>
 BOSH is Cloud Foundry’s orchestration tool for installing and managing software and virtual machines. Ops Manager provides a GUI and some tools for automating the installation and deployment process. Pivotal recommends that you confirm that your product successfully deploys with BOSH before attempting to deploy it with Ops Manager. 
 
 [Deploying Your Product with Bosh](./deploying-with-bosh.html) describes the procedure for deploying a release of your software product with BOSH. Confirm that this is successful before proceeding to deploy with Ops Manager.
