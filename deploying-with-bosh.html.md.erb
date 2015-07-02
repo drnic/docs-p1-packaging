@@ -1,0 +1,143 @@
+---
+title: Deploying with Bosh
+---
+
+A product release should install successfully using BOSH before it can be crafted into an Ops Manager tile. This topic will lead you through the process of installing an example product, a 3 node clustered Redis created by the open source Cloud Foundry community.
+
+## <a id='learn-bosh-releases'></a>Step 1 (Optional): Learn how the BOSH Releases are packaged.
+  See the [BOSH docs](https://bosh.io/docs).
+
+## <a id='provision-microbosh'></a>Step 2: Follow the BOSH instructions to provision a MicroBOSH on your IaaS.
+## <a id='create-manifest'></a>Step 3: Create a BOSH Manifest for the Redis release.
+
+```
+---
+name: redis
+director_uuid: 6b29bd9c-dea0-48d2-bfcd-969722e1e4dc
+
+releases:
+- name: redis
+  version: latest
+
+resource_pools:
+- name: vms
+  network: default
+  stemcell:
+    name: bosh-vsphere-esxi-ubuntu-trusty-go_agent
+    version: 2975
+  cloud_properties:
+    cpu: 2
+    ram: 1_024
+    disk: 10_240
+
+disk_pools:
+- name: default
+  disk_size: 10_240
+
+networks:
+- name: default
+  type: manual
+  subnets:
+  - range:   10.85.16.0/24
+    gateway: 10.85.16.1
+    dns:
+      - 8.8.8.8
+    reserved:
+      - 10.85.16.2
+      - 10.85.16.150
+    cloud_properties:
+      name: dingo
+
+jobs:
+- name: redis-master
+  instances: 1
+  resource_pool: vms
+  networks:
+  - name: default
+    static_ips:
+    - 10.85.16.151
+  templates:
+  - {name: redis, release: redis}
+
+- name: redis-slave
+  instances: 2
+  resource_pool: vms
+  networks:
+  - name: default
+  templates:
+  - {name: redis, release: redis}
+  properties:
+    redis:
+      master: 10.85.16.151
+
+compilation:
+  workers: 2
+  network: default
+  reuse_compilation_vms: true
+  cloud_properties:
+    cpu: 2
+    ram: 1_024
+    disk: 10_240
+
+update:
+  canaries: 1
+  max_in_flight: 10
+  canary_watch_time: 1000-30000
+  update_watch_time: 1000-30000
+
+```
+## <a id='upload-stemcell'></a>Step 4: Upload a Stemcell
+
+Change the version as needed.
+
+<pre class='terminal'>
+$ bosh upload stemcell https://bosh.io/d/stemcells/bosh-vsphere-esxi-ubuntu-trusty-go\_agent?v=2975
+</pre>
+
+<!-- need a step here to confirm, using `bosh stemcells` -->
+
+## <a id='upload-release'></a>Step 5: Upload the Redis release 
+
+Change the version as needed.
+
+<pre class='terminal'>
+$ bosh upload release https://bosh.io/d/github.com/cloudfoundry-community/redis-boshrelease?v=9.1
+</pre>
+
+
+<!-- steps are missing here, how did we get from uploading the release to having successfully deployed?? -->
+
+
+After the deployment is successful you can see the VM
+
+## <a id='confirm-deployment'></a>Step 6: Confirm Successful Deployment
+1. Check the VMs.
+<pre class='terminal'>
+$ bosh vms
++---------------+---------+---------------+--------------+
+| Job/index     | State   | Resource Pool | IPs          |
++---------------+---------+---------------+--------------+
+| redis/0       | running | vms           | 10.85.16.151 |
+| redis-slave/0 | running | vms           | 10.85.16.152 |
+| redis-slave/1 | running | vms           | 10.85.16.153 |
++---------------+---------+---------------+--------------+
+</pre>
+1. Check the Redis master.
+<pre class='terminal'>
+nc 10.85.16.151 6379
+set lol lol
++OK
+</pre>
+1. Check the Redis slaves
+<pre class='terminal'>
+nc 10.85.16.152 6379
+get lol
+$3
+lol
+set hugz hugz
+-READONLY You can't write against a read only slave.
+</pre>
+
+
+
+Now that you have a working Redis cluster you can take what you learned and build a product tile that will deploy it using Ops Manager. Ops Manager dynamically constructs a BOSH manifest to deploy the release software in your tile. So when deploying with Ops Manager, you do not write the BOSH manifest yourself. Instead, you provide a manifest template for your tile, and Ops Manager does the rest. The procedure for configuring your manifest template, and everything else you need to do to deploy your tile with Ops Manager, is described in [Deploying Your Product with a GUI Tile in Ops Manager](./deploying-with-ops-man-tile.html) 

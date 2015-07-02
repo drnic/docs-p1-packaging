@@ -1,0 +1,259 @@
+---
+title: Product Template Reference
+---
+
+##<a id='icon-image'></a> icon_image
+
+Datatype: String 
+
+Optional.
+
+Base 64 Encoded image shown in Ops Manager Dashboard on the product tile. Optimal size is 128x128.
+
+Example: `icon_image: R0lGODlhAQABAAAAACH5BAEAAAAALAAAAAABAAEAAAI=`
+
+
+##<a id='job-types'></a> job_types
+
+Datatype: YAML Snippet 
+
+Required.
+
+PCF compatible products include BOSH releases that are organized into BOSH Jobs. A BOSH Job is defined as the “job of a VM.” Job\_types, in the product template, lists the names, the BOSH templates that will be used, and the resource\_definitions for the jobs as they appear in the resources page of the tile.
+
+Example:
+
+```
+job_types:
+- name: redis-master
+  label: redis-master
+  resource_label: redis-master
+  description: The redis master node
+  templates:
+  - name: redis
+    release: redis
+  max_in_flight: 1
+  dynamic_ip: 0
+  static_ip: 1
+  instance_definitions:
+  - name: instances
+    type: integer
+    label: Instances
+    default: 1
+    configurable: true
+    constraints:
+      min: 1
+  resource_definitions:
+  - name: ram
+    label: RAM
+    type: integer
+    configurable: true
+    default: 1024
+    constraints:
+      min: 1024
+  - name: ephemeral_disk
+    type: integer
+    label: Ephemeral Disk
+    configurable: true
+    default: 2048
+    constraints:
+      min: 1024
+  - name: persistent_disk
+    type: integer
+    configurable: true
+    default: 10240
+    constraints:
+      min: 4096
+  - name: cpu
+    type: integer
+    label: CPU
+    configurable: true
+    default: 1
+    constraints:
+      min: 1
+      power_of_two: true
+```
+
+##<a id='label'></a> label
+
+Datatype: String 
+
+Optional.
+
+Label as it appears in Ops Manager Dashboard. Will not appear beneath the product image unless there is a base_64 image in the product template.
+
+Example:
+`label: redis community edition`
+
+##<a id='metadata_version'></a> metadata_version
+
+Datatype: String 
+
+Required.
+
+Version of Ops Manager’s product template schema
+
+Example: `metadata_version: '1.5'`
+
+
+##<a id='name'></a> name
+
+Datatype: String 
+
+Required.
+
+Name of product as it appears in Ops Manager Dashboard.
+
+Example: `name: redis`
+
+
+##<a id='product-version'></a> product_version
+
+Datatype: String 
+
+Required.
+
+Version of the product described by the template
+Example: `product_version: 9.1.0.0`
+
+
+##<a id='property-blueprint'></a> property_blueprint
+
+Datatype: YAML Snippet Required for VM Credential only.
+
+
+##<a id='provides-product-versions'></a> provides\_product_versions
+
+Datatype: YAML Snippet 
+
+Optional.
+
+Used when another product will reference this product as a dependency. In order to declare that dependency the product should include the requires\_product\_versions key.
+provides\_product\_versions:
+Example:
+
+```
+- name: redis
+  version: 9.1
+```
+
+##<a id='rank'></a> rank
+
+Datatype: Integer 
+
+Required.
+
+Order in which the product appears in Ops Manager installation dashboard. Must be less than 100 or it will appear before the Ops Manager Director tile.
+
+Example: `rank: 50`
+
+
+##<a id='releases'></a> releases
+
+Datatype: YAML Snippet 
+
+Required.
+
+One or many releases that will be used by the product.
+Example:
+```
+releases:
+- file: redis-9.1tgz
+  name: redis
+  version: '9.1'
+  md5: 06183ee91241771100f732e43554b68c
+```
+
+##<a id='requires-product-versions'></a> requires\_product\_versions
+
+Datatype: YAML Snippet 
+
+Optional.
+
+Used to prevent users from installing a product without meeting its dependencies. An error message will appear if the dependency is not met.
+Example:
+```
+requires_product_versions:
+- name: cf
+  version: "~> 1.3"
+```
+
+##<a id='stemcell-criteria'></a> stemcell_criteria
+
+Datatype: YAML Snippet 
+
+Required.
+
+Reference to the stemcell that will be used by the product. It is a better user experience if the stemcell is the same one that is on disk in `/var/tempest/stemcells/`.
+Example:
+```
+stemcell_criteria:
+  os: ubuntu-trusty
+  version: '2968'
+  requires_cpi: false
+```
+
+# Ops Manager Accessors
+
+Every job listed in the job_types section of a product template comes with a number of acceessors that can be used in the Manifest Snippet of that job, or any other job. The following accessors are available:
+
+
+##<a id='availability-zone'></a> availability_zone
+
+Datatype: String
+
+The availability zone of the job instance
+
+
+##<a id='ephemeral-disk'></a> ephemeral_disk
+
+Datatype: Integer
+
+The size of the ephemeral disk attached to the job’s VM, given in megabytes
+
+
+##<a id='first-ip'></a> first_ip
+
+Datatype: String
+
+The first ip assigned to the job
+
+
+##<a id='instances'></a> instances
+
+Datatype: Integer
+
+The number of job instances.
+
+##<a id='ips'></a> ips
+
+Datatype: Array
+
+IPs to which the job has been assigned.
+
+
+##<a id='ips-by-availability-zone'></a> ips\_by\_availability\_zone
+
+Datatype: Hash
+
+The keys are the identifiers for the different availability zones. The value is an array of ips assigned to the job for that availability zone.
+
+
+##<a id='name'></a> name
+
+Datatype: String
+
+The name of the job.
+
+##<a id='persistent-disk'></a> persistent_disk
+
+Datatype: Integer
+
+The size of the persistent disk attached to the job’s VM, given in megabytes.
+
+
+##<a id='ram'></a> ram
+
+Datatype: Integer
+
+The RAM assigned to the job in megabytes.
