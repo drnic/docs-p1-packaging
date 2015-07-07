@@ -160,7 +160,9 @@ Datatype: YAML Snippet
 Required.
 
 One or many releases that will be used by the product.
+
 Example:
+
 ```
 releases:
 - file: redis-9.1tgz
@@ -176,7 +178,9 @@ Datatype: YAML Snippet
 Optional.
 
 Used to prevent users from installing a product without meeting its dependencies. An error message will appear if the dependency is not met.
+
 Example:
+
 ```
 requires_product_versions:
 - name: cf
@@ -190,7 +194,9 @@ Datatype: YAML Snippet
 Required.
 
 Reference to the stemcell that will be used by the product. It is a better user experience if the stemcell is the same one that is on disk in `/var/tempest/stemcells/`.
+
 Example:
+
 ```
 stemcell_criteria:
   os: ubuntu-trusty
