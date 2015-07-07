@@ -2,7 +2,12 @@
 title: Product Template Reference
 ---
 
-##<a id='icon-image'></a> icon_image
+##<a id='blueprints'></a> Property Blueprints
+
+general description of property blueprints...
+
+
+###<a id='icon-image'></a> icon_image
 
 Datatype: String 
 
@@ -13,7 +18,7 @@ Base 64 Encoded image shown in Ops Manager Dashboard on the product tile. Optima
 Example: `icon_image: R0lGODlhAQABAAAAACH5BAEAAAAALAAAAAABAAEAAAI=`
 
 
-##<a id='job-types'></a> job_types
+###<a id='job-types'></a> job_types
 
 Datatype: YAML Snippet 
 
@@ -74,7 +79,7 @@ job_types:
       power_of_two: true
 ```
 
-##<a id='label'></a> label
+###<a id='label'></a> label
 
 Datatype: String 
 
@@ -85,7 +90,7 @@ Label as it appears in Ops Manager Dashboard. Will not appear beneath the produc
 Example:
 `label: redis community edition`
 
-##<a id='metadata_version'></a> metadata_version
+###<a id='metadata_version'></a> metadata_version
 
 Datatype: String 
 
@@ -96,7 +101,7 @@ Version of Ops Manager’s product template schema
 Example: `metadata_version: '1.5'`
 
 
-##<a id='name'></a> name
+###<a id='name'></a> name
 
 Datatype: String 
 
@@ -107,7 +112,7 @@ Name of product as it appears in Ops Manager Dashboard.
 Example: `name: redis`
 
 
-##<a id='product-version'></a> product_version
+###<a id='product-version'></a> product_version
 
 Datatype: String 
 
@@ -117,12 +122,12 @@ Version of the product described by the template
 Example: `product_version: 9.1.0.0`
 
 
-##<a id='property-blueprint'></a> property_blueprint
+###<a id='property-blueprint'></a> property_blueprint
 
 Datatype: YAML Snippet Required for VM Credential only.
 
 
-##<a id='provides-product-versions'></a> provides\_product_versions
+###<a id='provides-product-versions'></a> provides\_product_versions
 
 Datatype: YAML Snippet 
 
@@ -137,7 +142,7 @@ Example:
   version: 9.1
 ```
 
-##<a id='rank'></a> rank
+###<a id='rank'></a> rank
 
 Datatype: Integer 
 
@@ -148,7 +153,7 @@ Order in which the product appears in Ops Manager installation dashboard. Must b
 Example: `rank: 50`
 
 
-##<a id='releases'></a> releases
+###<a id='releases'></a> releases
 
 Datatype: YAML Snippet 
 
@@ -164,7 +169,7 @@ releases:
   md5: 06183ee91241771100f732e43554b68c
 ```
 
-##<a id='requires-product-versions'></a> requires\_product\_versions
+###<a id='requires-product-versions'></a> requires\_product\_versions
 
 Datatype: YAML Snippet 
 
@@ -178,7 +183,7 @@ requires_product_versions:
   version: "~> 1.3"
 ```
 
-##<a id='stemcell-criteria'></a> stemcell_criteria
+###<a id='stemcell-criteria'></a> stemcell_criteria
 
 Datatype: YAML Snippet 
 
@@ -193,66 +198,66 @@ stemcell_criteria:
   requires_cpi: false
 ```
 
-# Ops Manager Accessors
+## <a id='accessors'></a> Ops Manager Accessors
 
 Every job listed in the job_types section of a product template comes with a number of acceessors that can be used in the Manifest Snippet of that job, or any other job. The following accessors are available:
 
 
-##<a id='availability-zone'></a> availability_zone
+###<a id='availability-zone'></a> availability_zone
 
 Datatype: String
 
 The availability zone of the job instance
 
 
-##<a id='ephemeral-disk'></a> ephemeral_disk
+###<a id='ephemeral-disk'></a> ephemeral_disk
 
 Datatype: Integer
 
 The size of the ephemeral disk attached to the job’s VM, given in megabytes
 
 
-##<a id='first-ip'></a> first_ip
+###<a id='first-ip'></a> first_ip
 
 Datatype: String
 
 The first ip assigned to the job
 
 
-##<a id='instances'></a> instances
+###<a id='instances'></a> instances
 
 Datatype: Integer
 
 The number of job instances.
 
-##<a id='ips'></a> ips
+###<a id='ips'></a> ips
 
 Datatype: Array
 
 IPs to which the job has been assigned.
 
 
-##<a id='ips-by-availability-zone'></a> ips\_by\_availability\_zone
+###<a id='ips-by-availability-zone'></a> ips\_by\_availability\_zone
 
 Datatype: Hash
 
 The keys are the identifiers for the different availability zones. The value is an array of ips assigned to the job for that availability zone.
 
 
-##<a id='name'></a> name
+###<a id='name'></a> name
 
 Datatype: String
 
 The name of the job.
 
-##<a id='persistent-disk'></a> persistent_disk
+###<a id='persistent-disk'></a> persistent_disk
 
 Datatype: Integer
 
 The size of the persistent disk attached to the job’s VM, given in megabytes.
 
 
-##<a id='ram'></a> ram
+###<a id='ram'></a> ram
 
 Datatype: Integer
 
