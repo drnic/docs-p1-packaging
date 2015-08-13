@@ -1,5 +1,5 @@
 ---
-title: Deploying with Bosh
+title: Deploying with BOSH
 ---
 
 BOSH is Cloud Foundry’s orchestration tool for installing and managing software and virtual machines.  A product release should install successfully using BOSH before it can be crafted into an Ops Manager tile. 
@@ -77,7 +77,7 @@ Cleaning up rendered CPI jobs... Finished (00:00:00)
 
 ## <a id='create-manifest'></a>Step 3: Prepare the BOSH Manifest for your release.
 
-1. Point bosh at your MicroBOSH by running:
+1. Point BOSH at your MicroBOSH by running:
 <pre class='terminal'>
 $  bosh target 52.8.50.119
 Target set to `my-bosh'
@@ -85,7 +85,7 @@ Your username: admin
 Enter password: admin
 </pre>
 
-1. Upload the bosh release contained in Example Tile Docs Resources:
+1. Upload the BOSH release contained in Example Tile Docs Resources:
 <pre class='terminal'>
 ~/my-bosh ::)=  bosh upload release releases/
 .DS_Store              .gitkeep               example-release-7.tgz

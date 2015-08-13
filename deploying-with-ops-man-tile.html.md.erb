@@ -1,5 +1,5 @@
 ---
-title: Deploying Your Product as a Tile in Ops Mananger
+title: Deploying Your Product as a Tile in Ops Manager
 ---
 
 ## What’s inside a Tile?
@@ -12,7 +12,7 @@ A tile is an archived directory with a `.pivotal` file extension, containing the
     <li>Releases <strong>(optional)</strong>: Source code for the releases of the software product.</li>
 </ul>
 
-This topic describes the procedure for deploying a Cloud Foundry software product as a tile to Ops Manager. Before attempting this, you should confirm that your product can be successfully deployed by BOSH, as described in [Deploying Your Product with Bosh](./deploying-with-bosh.html).
+This topic describes the procedure for deploying a Cloud Foundry software product as a tile to Ops Manager. Before attempting this, you should confirm that your product can be successfully deployed by BOSH, as described in [Deploying Your Product with BOSH](./deploying-with-bosh.html).
 
 Since your tile will run in Ops Manager you should start by deploying an Ops Manager to your IaaS. Follow the instructions on the PCF documentation site to get an Ops Manager up and running.
 
@@ -154,7 +154,7 @@ Re-Add the Redis product. This will attach the right stemcell and automatically 
 
 ## <a id='add-job-types'></a>Step 6: Add Job-types to your Product Manifest Template
 
-Jobs are the roles that vms will play in a deployment of your product.
+Jobs are the roles that vms plays in a deployment of your product.
 
 Add a `job_types` section and include job definitions and resource sizing for redis-master, redis-slave, and compilation workers.
 
