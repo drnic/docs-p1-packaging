@@ -20,7 +20,7 @@ For the purpose of this topic we will begin by preparing an environment on Amazo
     $ cd example-tile-docs-resources
   </pre>
 
-1. Create a keypair for your AWS Virtual Machines and pipe it to a local file names key.pem
+1. Create a keypair for your AWS Virtual Machines and pipe it to a local file names MyKeyPair.pem
   <pre class='terminal'>
     $ aws ec2 create-key-pair --key-name MyKeyPair \
     | python -c 'import json,sys;obj=json.load(sys.stdin);print obj["KeyMaterial"]' \
@@ -59,180 +59,121 @@ The Example Tile Docs resources you downloaded earlier contains a BOSH manifest,
 
 1. Run the following command to deploy your MicroBOSH instance:
 
-<pre class='terminal'>
-
-$ bosh-init deploy ./bosh.yml
-
-Deployment manifest: '/Users/mtrestman/my-bosh/bosh.yml'
-Deployment state: '/Users/mtrestman/my-bosh/bosh-state.json'
-
-Stuff...
-
-Finished deploying (00:16:35)
-
-Stopping registry... Finished (00:00:00)
-Cleaning up rendered CPI jobs... Finished (00:00:00)
-
-</pre>
+   <pre class='terminal'>
+    $ bosh-init deploy ./bosh.yml
+    Deployment manifest: '/Users/d/my-bosh/bosh.yml'
+    Deployment state: '/Users/d/my-bosh/bosh-state.json'
+    Finished deploying (00:16:35)
+    Stopping registry... Finished (00:00:00)
+    Cleaning up rendered CPI jobs... Finished (00:00:00)
+  </pre>
 
 ## <a id='create-manifest'></a>Step 3: Prepare the BOSH Manifest for your release.
 
-1. Point bosh at your MicroBOSH by running:
-<pre class='terminal'>
-$  bosh target 52.8.50.119
-Target set to `my-bosh'
-Your username: admin
-Enter password: admin
-</pre>
-
-1. Upload the bosh release contained in Example Tile Docs Resources:
-<pre class='terminal'>
-~/my-bosh ::)=  bosh upload release releases/
-.DS_Store              .gitkeep               example-release-7.tgz
-~/my-bosh ::)=  bosh upload release releases/example-release-7.tgz
-Acting as user 'admin' on 'my-bosh'<br>
-Verifying release...<br>
-OTHER-STUFF....<br>
-Started   2015-07-30 21:05:39 UTC
-Finished  2015-07-30 21:05:39 UTC
-Duration  00:00:00<br>
-Release uploaded
-</pre>
+1. Target your MicroBOSH:
+  <pre class='terminal'>
+    $  bosh target 52.8.50.119
+    Target set to `my-bosh'
+    Your username: admin
+    Enter password: admin
+  </pre>
 
 1. Upload your release by running:
-<pre class='terminal'>
-  bosh upload release example-release-7+dev.2.tgz 
-  Acting as user 'admin' on 'my-bosh'
-
-  Verifying release...
-
-  Stuff...
-
-  Started release has been created > example-release/7+dev.2. Done (00:00:00)
-
-  Task 29 done
-
-  Started        2015-07-31 00:02:27 UTC
-  Finished    2015-07-31 00:02:27 UTC
-  Duration    00:00:00
-
-  Release uploaded  
-</pre>
+  <pre class='terminal'>
+    bosh upload release example-release-7+dev.2.tgz 
+    Acting as user 'admin' on 'my-bosh'
+    Verifying release...
+    Task 29 done
+    Started        2015-07-31 00:02:27 UTC
+    Finished    2015-07-31 00:02:27 UTC
+    Duration    00:00:00
+    Release uploaded  
+  </pre>
 
 1. Upload the latest AWS Xen-HVM Light stemcell to your MicroBOSH by running:
-<pre class='terminal'>
-  bosh upload stemcell https://bosh.io/d/stemcells/bosh-aws-xen-hvm-ubuntu-trusty-go_agent?v=3026
-  Acting as user 'admin' on 'my-bosh'<br>
-Using remote stemcell `https://bosh.io/d/stemcells/bosh-aws-xen-hvm-ubuntu-trusty-go_agent?v=3026'<br>
-Director task 15
-  Started update stemcell
-  Started update stemcell > Downloading remote stemcell. Done (00:00:02)
-  Started update stemcell > Extracting stemcell archive. Done (00:00:00)
-  Started update stemcell > Verifying stemcell manifest. Done (00:00:00)
-  Started update stemcell > Checking if this stemcell already exists. Done (00:00:00)
-  Started update stemcell > Uploading stemcell bosh-aws-xen-hvm-ubuntu-trusty-go_agent/3026 to the cloud. Done (00:00:09)
-  Started update stemcell > Save stemcell bosh-aws-xen-hvm-ubuntu-trusty-go_agent/3026 (ami-69d53c2d light). Done (00:00:00)
-     Done update stemcell (00:00:11)<br>
-Task 15 done<br>
-Started   2015-07-30 21:23:09 UTC
-Finished  2015-07-30 21:23:20 UTC
-Duration  00:00:11<br>
-Stemcell uploaded and created.
-</pre>
+  <pre class='terminal'>
+    bosh upload stemcell https://bosh.io/d/stemcells/bosh-aws-xen-hvm-ubuntu-trusty-go_agent?v=3026
+    Acting as user 'admin' on 'my-bosh'
+    Using remote stemcell `https://bosh.io/d/stemcells/bosh-aws-xen-hvm-ubuntu-trusty-go_agent?v=3026'
+    Director task 15
+    Started update stemcell
+    Started update stemcell > Downloading remote stemcell. Done (00:00:02)
+    Started update stemcell > Extracting stemcell archive. Done (00:00:00)
+    Started update stemcell > Verifying stemcell manifest. Done (00:00:00)
+    Started update stemcell 
+    Done update stemcell (00:00:11)
+    Task 15 done
+    Started   2015-07-30 21:23:09 UTC
+    Finished  2015-07-30 21:23:20 UTC
+    Duration  00:00:11
+    Stemcell uploaded and created.
+  </pre>
 
 1. Get your BOSH Director (MicroBOSH) UUID by running:
-<pre class='terminal'>
-  $ bosh status
-  Config
-    /Users/mtrestman/.bosh_config<br>
-  Director
-    Name       my-bosh
-    URL        https://52.8.50.119:25555
-    Version    1.3012.0 (00000000)
-    User       admin
-    UUID       729452b0-2c1f-4763-a6ec-cf43e7f0ba89
-    CPI        cpi
-    dns        disabled
-    compiled_package_cache disabled
-    snapshots  disabled<br>
-  Deployment
-    not set
-</pre> 
+  <pre class='terminal'>
+    $ bosh status
+    Config
+      /Users/d/.bosh_config
+    Director
+      Name       my-bosh
+      URL        https://52.8.50.119:25555
+      Version    1.3012.0 (00000000)
+      User       admin
+      UUID       729452b0-2c1f-4763-a6ec-cf43e7f0ba89
+  </pre> 
 
+1. Edit `example-release.yml` and fill in details as indicated in the comments of the file.
 
-1. Edit `example-release.yml` to fill in your details as indicated in the comments in that file.
+1. Run the following command to set the deployment.
 
-1. Run the following command to 
-<pre class='terminal'>bosh deployment ./example-release.yml</pre>
+  <pre class='terminal'>
+    bosh deployment ./example-release.yml
+  </pre>
 
-1. Deploy the example webserver:
-<pre class='terminal'>
-  bosh deploy
-Acting as user 'admin' on deployment 'example-product-906ec4aecbec172c9706' on 'my-bosh'
-Getting deployment properties from director...
-Please review all changes carefully<br>
-Deploying
-\-\-\-\-\-\-\-\-\-
-Are you sure you want to deploy? (type 'yes' to continue): yes<br>
-Director task 31
- Started unknown
- Started unknown > Binding deployment. Done (00:00:00)<br>
- Started preparing deployment
- Started preparing deployment > Binding releases. Done (00:00:00)
- Started preparing deployment > Binding existing deployment. Done (00:00:00)
- Started preparing deployment > Binding resource pools. Done (00:00:00)
- Started preparing deployment > Binding stemcells. Done (00:00:00)
- Started preparing deployment > Binding templates. Done (00:00:00)
- Started preparing deployment > Binding properties. Done (00:00:00)
- Started preparing deployment > Binding unallocated VMs. Done (00:00:00)
- Started preparing deployment > Binding instance networks. Done (00:00:00)<br>
- Started preparing package compilation > Finding packages to compile. Done (00:00:00)<br>
- Started compiling packages > nginx/795a8f8acc5e1c4688e3823355e7681532ba85f9. Done (00:03:29)<br>
- Started preparing dns > Binding DNS. Done (00:00:00)<br>
- Started creating bound missing vms > vms/0. Done (00:02:25)<br>
- Started binding instance vms > web_server/0. Done (00:00:00)<br>
- Started preparing configuration > Binding configuration. Done (00:00:00)<br>
- Started updating job web_server > web_server/0 (canary). Done (00:01:27)<br>
-Task 31 done<br>
-Started     2015-07-31 00:04:19 UTC
-Finished    2015-07-31 00:12:52 UTC
-Duration    00:08:33<br>
-Deployed `example-product-906ec4aecbec172c9706' to `my-bosh'
-</pre>
-
-
-After the deployment is successful you can see the VM
+1. Deploy the example release:
+  <pre class='terminal'>
+   bosh deploy
+   Acting as user 'admin'
+   Are you sure you want to deploy? (type 'yes' to continue): yes
+   Task 31 done
+   Started     2015-07-31 00:04:19 UTC
+   Finished    2015-07-31 00:12:52 UTC
+   Duration    00:08:33<br>
+   Deployed `example-product-906ec4aecbec172c9706' to `my-bosh'
+  </pre>
 
 ## <a id='confirm-deployment'></a>Step 4: Confirm Successful Deployment
 
 1. Check the VMs.
-<pre class='terminal'>
-$ bosh vms
-Acting as user 'admin' on 'my-bosh'
-Deployment `example-product-906ec4aecbec172c9706'<br>
-Director task 32<br>
-Task 32 done<br>
-+--------------+---------+---------------+-----------+
-| Job/index    | State   | Resource Pool | IPs       |
-+--------------+---------+---------------+-----------+
-| web_server/0 | running | vms           | 10.0.16.5 |
-+--------------+---------+---------------+-----------+<br>
-</pre>
+  <pre class='terminal'>
+    $ bosh vms
+    Acting as user 'admin' on 'my-bosh'
+    Deployment `example-product-906ec4aecbec172c9706'
+    Director task 32
+    Task 32 done
+    +--------------+---------+---------------+-----------+
+    | Job/index    | State   | Resource Pool | IPs       |
+    +--------------+---------+---------------+-----------+
+    | web_server/0 | running | vms           | 10.0.16.5 |
+    +--------------+---------+---------------+-----------+
+  </pre>
 
 1. SSH into your VPC using the IP that you [allocated](#prep-environment) and the key pair that you [created](#prep-environment).
-<pre class='terminal'>
-  $ ssh-add MyKeyPair.pem
-  Identity added: MyKeyPair.pem (MyKeyPair.pem)
-  $ ssh ubuntu@BOSH-IP-ADDRESS
-  Welcome to Ubuntu 14.04.2 LTS (GNU/Linux 3.13.0-59-generic x86_64)
-</pre>
+  <pre class='terminal'>
+    $ ssh-add MyKeyPair.pem
+    Identity added: MyKeyPair.pem (MyKeyPair.pem)
+    $ ssh ubuntu@BOSH-IP-ADDRESS
+    Welcome to Ubuntu 14.04.2 LTS (GNU/Linux 3.13.0-59-generic x86_64)
+  </pre>
 
 1. Confirm successful deployment by viewing the 'hello world' page served by the webserver in the example product.
-<pre class='terminal'>
-  $ curl 10.0.16.5
-  &lt;html&gt;
-   &lt;body&gt;
-     &lt;h1&gt;Hello World&lt;/h1&gt;
-   &lt;/body&gt;
-  &lt;/html&gt;
-</pre>
+  <pre class='terminal'>
+    $ curl 10.0.16.5
+    &lt;html&gt;
+     &lt;body&gt;
+       &lt;h1&gt;Hello World&lt;/h1&gt;
+     &lt;/body&gt;
+    &lt;/html&gt;
+  </pre>
+
+Before  proceeding to the [Deploying Your Product as a Tile](./deploying-with-ops-man-tile.html) section make sure to terminate the instances in your VPC.
