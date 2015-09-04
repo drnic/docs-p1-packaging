@@ -22,7 +22,7 @@ For the purpose of this topic we will begin by preparing an environment on Amazo
     $ cd example-tile-docs-resources
   </pre>
 
-1. Create a keypair for your AWS Virtual Machines and pipe it to a local file names MyKeyPair.pem
+1. Create a key pair for your AWS Virtual Machines and pipe it to a local file names MyKeyPair.pem
   <pre class='terminal'>
     $ aws ec2 create-key-pair --key-name MyKeyPair \
     | python -c 'import json,sys;obj=json.load(sys.stdin);print obj["KeyMaterial"]' \
