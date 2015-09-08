@@ -29,21 +29,23 @@ Ops Manager is available on [Pivotal Network](http://network.pivotal.io). For th
 
 1. Choose an m3.large instance and click Next: Configure Instance Details.
 
-1. Choose the VPC and public Subnet you created for the exercise of [Deploying Your Product with Bosh](./deploying-with-bosh.html).
+1. Click the dropdown for the **Network** key and choose the VPC you created in [Deploying Your Product with Bosh](./deploying-with-bosh.html#prep-environment).
 
-1. Auto-assign a Public IP.
+1. Click the dropdown for the **Subnet** key and choose the public subnet you created in [Deploying Your Product with Bosh](./deploying-with-bosh.html#prep-environment).
+
+1. Set **Auto-assign Public IP** to **Enable**.
 <%= image_tag 'vpc.png' %>
 
-1. Click Review and Launch.
+1. Click **Review and Launch**.
 
-1. Edit the Security Group and set it to the OpsManagerSecurityGroup you used in the BOSH exercise.
+1. Edit the Security Group and set it to the OpsManagerSecurityGroup you used in [Deploying Your Product with Bosh](./deploying-with-bosh.html).
 
-1. Click Launch.
+1. Click **Launch**.
 
-1. Choose the keypair you created in the BOSH exercise and accept the aknowledgement checkbox.
+1. Choose the keypair you created in [Deploying Your Product with Bosh](./deploying-with-bosh.html) and accept the aknowledgement checkbox.
 <%= image_tag 'keypair.png' %>
 
-1. Click Launch Instance.
+1. Click **Launch Instance**.
 
 ## <a id='configure-install'></a>Step 2: Configure and Install Ops Manager Director
 
@@ -51,7 +53,7 @@ Ops Manager is available on [Pivotal Network](http://network.pivotal.io). For th
 
 1. Open a browser and navigate to the Ops Manager IP address.
 
-1. Create a username, password and agree to the terms and conditions.
+1. Create a username and password, and agree to the terms and conditions.
 <%= image_tag 'username-pass.png' %>
 
 1. Click the **Ops Manager Director** Tile.<br>
@@ -66,24 +68,28 @@ Ops Manager is available on [Pivotal Network](http://network.pivotal.io). For th
 
 1. Enter an Amazon NTP Server (0.amazon.pool.ntp.org) and click Save.
 
-1. Navigate to the Create Availability Zone page.
+1. Select **Create Availability Zone**.
 
-1. Enter the Availability Zone for the private subnet of your VPC (example: us-west-1a) and click Save.
+1. Enter the Availability Zone for the private subnet of your VPC (example: us-west-1a) and click **Save**.
 
-1. Navigate to the Assign Availability Zone page.
+1. Select **Assign Availability Zone**.
 
-1. Select the Availability Zone you created and click Save.
+1. Choose the Availability Zone you created and click **Save**.
 
-1. Navigate to the Create Networks page.
+1. Select **Create Networks**.
 
-1. Enter a network name, Subnet ID, CIDR Range, Excluded IP range, DNS, and gateway using the same values you used for the BOSH exercise. Note: you will get errors that Ops Manager cannot reach the gateway or DNS server.
+1. Enter a **network name**, **Subnet ID**, **CIDR Range**, **Excluded IP range**, **DNS**, and **gateway** using the same values you used for the BOSH exercise.
+
+<p class='note'><strong>Note</strong>: you will get errors that Ops Manager cannot reach the gateway or DNS server.</p>
 <%= image_tag 'networks.png' %>
 
-1. Navigate to the Assign Networks page.
+1. Select **Assign Networks**.
 
-1. Select the network you created and click Save.
+1. Choose the network you created and click **Save**.
 
-1. Click Apply Changes and wait until the Ops Manager Director is successfully installed. If you have existing VMs in the VPC you will recieve errors that IP addresses are already in use.
+1. Click **Apply Changes** and wait until the Ops Manager Director is successfully installed. 
+
+<p class='note'><strong>Note</strong>: If you have existing VMs in the VPC you will recieve errors that IP addresses are already in use.</p>
 
 ## <a id='examine-example'></a>Step 3: Download and Examine the Example Product Tile
 
