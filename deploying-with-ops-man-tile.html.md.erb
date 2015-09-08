@@ -2,7 +2,7 @@
 title: Deploying Your Product as a Tile in Ops Manager
 ---
 
-This topic describes the procedure for deploying a Cloud Foundry software product as a tile in Ops Manager. Ops Manager makes deploying software with BOSH easier in the following ways:
+This topic describes the procedure for deploying a Cloud Foundry software product as a tile in Ops Manager. Ops Manager offers a web GUI and eases the process of deploying software with BOSH by providing the following:
 
 - Automated error checking
 - Automated manifest generation
@@ -78,7 +78,7 @@ Ops Manager is available on [Pivotal Network](http://network.pivotal.io). For th
 
 1. Select **Create Networks**.
 
-1. Enter a **network name**, **Subnet ID**, **CIDR Range**, **Excluded IP range**, **DNS**, and **gateway** using the same values you used for the BOSH exercise.
+1. Enter a **network name**, **Subnet ID**, **CIDR Range**, **Excluded IP range**, **DNS**, and **gateway** using the same values you used in [Deploying with BOSH](./deploying-with-bosh.html).
 
 <p class='note'><strong>Note</strong>: you will get errors that Ops Manager cannot reach the gateway or DNS server.</p>
 <%= image_tag 'networks.png' %>
@@ -97,7 +97,7 @@ We will learn how to build an product tile by examining its contents.
 
 1. Download the latest release of the [Example Product Tile](https://github.com/pivotal-cf-experimental/ops-manager-example/releases).
 
-1. Change the extension from .pivotal to .zip and unzip the file on your local workstation.
+1. Change the extension from `.pivotal` to `.zip` and unzip the file on your local workstation.
 
 Study the files contained in the following directories using these explanations as a guide. Once you have looked at the files, we will deploy the tile, SSH into the Ops Manager, and explore how the tile functions.
 <ul>
@@ -114,11 +114,11 @@ Create your own product tile by following these high level instructions. Each in
 
 2. Create a Product Template by using the Example Product Tile as a model. Refer to the [Product Template Reference](./product-template-reference.html) for clarification.
 
-3. Consider adding Lifecycle Errands to both you BOSH release and your Product Template. Refer to the [BOSH documentation](https://bosh.io/) for information about Errands and the [Lifecycle Errands](./lifecycle-errands.html) section of this doc to understand why this might be important in the context of your product tile.
+3. Consider adding Lifecycle Errands to both your BOSH release and your Product Template. Refer to the [BOSH documentation](https://bosh.io/) and the [Lifecycle Errands](./lifecycle-errands.html) topic for more information. Consider what errands to include in your product tile.
 
-4. Create folders according to the previous step, archive the folders into an .zip file and import the file into a deployed Ops Manager.
+4. Create folders according to the previous step, archive the folders into a `.zip` file and import the file into a deployed Ops Manager.
 
-5. The fastest way to make changes to your product tile is to directly SSH into the Ops Manager VM and edit the product template at /var/tempest/workspace/default/metadata. After making changes, refresh your browser to see the change. You can click the Apply Button in the Ops Manager Dashboard and view the resulting BOSH manifest in /var/tempest/workspace/default/deployments.
+5. The fastest way to make changes to your product tile is to directly SSH into the Ops Manager VM and edit the product template at `/var/tempest/workspace/default/metadata`. After making changes, refresh your browser to see the change. You can click **Apply Changes** in the PCF Ops Manager Installation Dashboard and view the resulting BOSH manifest in `/var/tempest/workspace/default/deployments`.
 
 6. You must create a migration file to migrate values in subsequent releases of your product. These files use a ruby gem known as Transmogrifier. Refer to the [Migrations](./migrations.html) section more information about building migrations.
 
