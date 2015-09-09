@@ -22,14 +22,14 @@ First, you must prepare an environment on your IaaS. For this tutorial, complete
     $ cd example-tile-docs-resources
   </pre>
 
-1. Create a key pair for your AWS Virtual Machines and pipe it to a local file names MyKeyPair.pem
+1. Create a key pair for your AWS Virtual Machines and pipe it to a local file named MyKeyPair.pem
   <pre class='terminal'>
     $ aws ec2 create-key-pair --key-name MyKeyPair \
     | python -c 'import json,sys;obj=json.load(sys.stdin);print obj["KeyMaterial"]' \
     \> MyKeyPair.pem
   </pre>
 
-1. Use the [AWS CLI](http://docs.aws.amazon.com/cli/latest/userguide/installing.html) to provision your AWS account with the resources specified in the template.
+1. Provision your AWS account with the resources specified in the template.
   <pre class='terminal'>
     $ aws cloudformation create-stack \
     --stack-name examplestack \
@@ -41,7 +41,7 @@ First, you must prepare an environment on your IaaS. For this tutorial, complete
     --capabilities CAPABILITY_IAM
   </pre>
 
-1. Allocate an Elastic IP for your BOSH instance by running the following command. The terminal will output the IP address for your BOSH instance. Record this for use in a step below.
+1. Allocate an Elastic IP for your BOSH instance by running the following command. The terminal displays the IP address for your BOSH instance. Record this IP address for use in a step below.
   <pre class='terminal'>
     $ aws ec2 allocate-address --domain vpc
     {
@@ -53,11 +53,16 @@ First, you must prepare an environment on your IaaS. For this tutorial, complete
 
 ## <a id='provision-microbosh'></a>Step 2: Install a MicroBOSH on your IaaS
 
+Complete the following procedure to install a MicroBOSH on your Iaas. You use this MicroBOSH to deploy the Example Release.
 See [Intializing an environment](http://bosh.io/docs/init.html) to learn about deploying MicroBOSH.
 
-The Example Tile Docs resources you downloaded earlier contains a BOSH manifest, `bosh.yml`, for the MicroBOSH we will use to deploy the Example Release.
+The Example Tile Docs repo you cloned in the previous step contains a BOSH manifest, `bosh.yml`, for the MicroBOSH we will use to deploy the Example Release.
 
-1. Edit this file to fill in all of the needed information particular to your AWS account, as indicated by the comments in the file.
+1. `cd` into `example-tile-docs-resources`.
+
+1. Open `bosh.yml`. This is the BOSH manifest file for the MicroBOSH you will use to deploy the example release.
+
+1. In `bosh.yml`, follow the instructions in comments to fill in the details specific to your own AWS account.
 
 1. Run the following command to deploy your MicroBOSH instance:
 
