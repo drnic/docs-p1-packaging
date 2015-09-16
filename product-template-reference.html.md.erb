@@ -2,14 +2,14 @@
 title: Product Template Reference
 ---
 
-This document will define the seperate pieces of a product template. For the purpose of explanation we will use the [1.6 example product tile](https://github.com/pivotal-cf-experimental/ops-manager-example/releases), a functional tile provided by the Ops Manager engineering team that deploys the NGINX web server.
+This document define the separate pieces of a product template. For the purpose of explanation we will use the [1.6 example product tile](https://github.com/pivotal-cf-experimental/ops-manager-example/releases), a functional tile provided by the Ops Manager engineering team that deploys the NGINX web server.
 
 ## <a id='top-level'></a> Top Level Properties
 
 The following is an example of the properties that appear at the top of a product template. Following this example are definitions of each property.
 
-  <pre class='terminal'>
-    ---
+   ```
+   ---
     name: example-product
     product_version: "1.6.0.0-alpha.3.3062"
     metadata_version: "1.5"
@@ -29,7 +29,7 @@ The following is an example of the properties that appear at the top of a produc
     pre_delete_errands:
       - name: example-errand
     icon_image: R0lGODdhAgACAIAAAAAAAP///ywAAAAAAgACAAACAoRRADs=
-  </pre>
+  ```
 
 Note: The icon_image is a single-pixel gif to keep the example readable. 
 
@@ -59,17 +59,17 @@ The order in which a product tile appears on the dashboard. The Ops Manager Dire
 
 ### stemcell_criteria
 Hash. Required.
-Refer to [the BOSH hub](https://bosh.io/) for a list of stemcells, including os and version. Notice that you do not specify which IaaS the Stemcell targets. This keeps your product template IaaS agnostic so that one product template can be deployed on any IaaS. At the time of this writing none of the BOSH stemcells require a Cloud Provider Interface (CPI). This is expected to change in a future release of BOSH.
+Refer to [the BOSH hub](https://bosh.io/) for a list of stemcells, including os and version. Notice that you do not specify which IaaS the Stemcell targets. This keeps your product template IaaS agnostic so that one product template can be deployed on any IaaS. At the time of this writing, none of the BOSH stemcells require a Cloud Provider Interface (CPI). This is expected to change in a future release of BOSH.
 
 ### releases
 Array of Hashes. Required.
 The list of releases contained in your product's releases directory. The version of the release must be exactly the same as the version contained in the release (BOSH releases are versioned and signed by BOSH).
 
-### post_deploy_errands
+### post\_deploy\_errands
 Array of Hashes. Optional.
 A list of errands that will run after a deploy succeeds. See [Lifecycle Errands](./lifecycle-errands.html)
 
-### pre_delete_errande
+### pre\_delete\_errands
 Array of Hashes. Optional.
 A list of errands that will run before a deployment is deleted.[Lifecycle Errands](./lifecycle-errands.html)
 
@@ -77,11 +77,11 @@ A list of errands that will run before a deployment is deleted.[Lifecycle Errand
 
 The following is an example of the properties that appear in the form_types section of a product template. These forms appear on the left hand side, as links, after a user clicks on the tile itself. 
 
-As you will see in later section - form properties reference property_blueprints for the definition of what type of data is being saved (url, ip address, list, etc.). Form properties are themselves referenced in the manifest section of the job_types section, which will also be explained later in this document. The eventual purpose of these properties is to hydrate a BOSH manifest, which Ops Manager generates on the user's behalf. 
+As shown in a later section, form properties reference property\_blueprints for the definition of the type of data (url, IP address, list, etc.) being saved. Form properties are themselves referenced in the manifest section of the job\_types section, which will also be explained later in this document. The eventual purpose of these properties is to hydrate a BOSH manifest, which Ops Manager generates on the user's behalf. 
 
 Following this example are definitions of each property.
 
-  <pre class='terminal'>
+  ```
   form_types:
     - name: example-form
       label: Configurable Properties
@@ -131,7 +131,7 @@ Following this example are definitions of each property.
               property_inputs:
                 - reference: .properties.example_selector.filet_mignon_option.rarity_dropdown
                   label: 'How rare?'    
-  </pre>
+  ```
 
 ### name
 String. Required.
@@ -151,7 +151,7 @@ References to properties defined in the property_blueprints section of the produ
 
 ## <a id='simple-vs-complex'></a> Simple vs. Complex Inputs (Selectors and Collections)
 
-Most properties are simple values such as strings, integers, url addresses, or ip addresses. Others are complext such as selectors or collections.
+Most properties are simple values such as strings, integers, url addresses, or IP addresses. Others are complex, such as selectors or collections.
 
 Selectors are a means of giving the user a choice of a set of inputs. Collections are a means of giving the user the ability to enter an array of values to create a hash. 
 
@@ -163,17 +163,15 @@ Collections appear as follows:
 
 <%= image_tag 'collection.png' %>
 
-To understand how 
-
 ## <a id='property-blueprints'></a> Property Blueprints
 
 The following is an example of the property_blueprints that appear in a product template. These blueprints define anything that will eventually end up in the BOSH manifest generated by Ops Manager. References to these blueprints.
 
 Note that one of these blueprints references a migrated value, which came from the Example Product v. 1.5 using [migrations](./migrations.html).
 
-No property will be viewable in a form if unless **configurable** is set to **true**. Some properties are not viewable. Rather than giving the user the ability to enter a value - the value is generated by Ops Manager.
+No property will be viewable in a form if unless **configurable** is set to **true**. Some properties are not viewable. Rather than giving the user the ability to enter a value, the value is generated by Ops Manager.
 
-  <pre class='terminal'>
+  ```
     property_blueprints:
       - name: example_string
         type: string
@@ -237,11 +235,11 @@ No property will be viewable in a form if unless **configurable** is set to **tr
                     label: 'Medium'
                   - name: well-done
                     label: 'Well done'
-  </pre>
+  ```
 
 ## <a id='configurable-props'></a> Configurable Properties
 
-Many of these properties are strings, but can be used with validators in order to check that the user typed in the correct format for a url, ip, address, domain, etc.
+Many of these properties are strings, but can be used with validators in order to check that the user typed in the correct format for a url, IP, address, domain, etc.
 
 ### string
 A string. 
@@ -259,37 +257,37 @@ A list of options. The user chooses one viewed as an HTML select box.
 A second, third, fourth, etc level domain.
 
 ### wildcard_domain
-A domain with a wildcard in front of it (ex: *.domain.com)
+A domain with a wildcard in front of it. Example: `*.domain.com`
 
 ### text
 A string. Appears as an HTML textarea.
 
 ### ldap_url
-A url prefaced by ldap://.
+A url prefaced by `ldap://`.
 
 ### email
 An email address.
 
 ### ip_ranges
-A range of ips, with dashes and commas allowed (ex 1.1.1.1-1.1.1.4,2.2.2.1-2.2.2.4)
+A range of IP addresses, with dashes and commas allowed. Example: `1.1.1.1-1.1.1.4,2.2.2.1-2.2.2.4`
 
 ### port
 An integer representing a network port.
 
 ### network_address
-A single ip address or domain (1.1.1.1)
+A single IP address or domain. Example: `1.1.1.1`
 
-### network_address_list
-A list of ip addresses or domains (1.1.1.1,example.com,2.2.2.2)
+### network\_address\_list
+A list of IP addresses or domains. Example: `1.1.1.1,example.com,2.2.2.2`
 
 ### Generated Properties (can also be configurable)
 
-The following properties are configurable, but can also be generated by Ops manager if configurable is false, or the configurable key is ommitted. The  exceptions are the uuid and salted credentials properties, which are never configurable.
+The following properties are configurable, but can also be generated by Ops manager if configurable is false, or the configurable key is omitted. The  exceptions are the uuid and salted credentials properties, which are never configurable.
 
-### rsa_cert_credentials
+### rsa\_cert\_credentials
 An RSA certificate.
 
-### rsa_pkey_credentials
+### rsa\_pkey\_credentials
 An RSA private key.
 
 ### salted_credentials
@@ -310,11 +308,11 @@ The selector and collections inputs are referenced by their selector and collect
 
 ## <a id='job-types'></a> Job Types
 
-The following is an example of the job_types section that appear in a product template. This section defines the jobs that end up in a BOSH Manifest. Those jobs are defined in your BOSH Release. Jobs require many different settings in order to function properly, and that is the crux of what Ops Manager does for you - it asks a user for values to those settings, and generates a manifest based on what was entered.
+The following is an example of the job_types section that appear in a product template. This section defines the jobs that end up in a BOSH Manifest. Those jobs are defined in your BOSH Release. Jobs require many different settings in order to function properly, and that is the crux of what Ops Manager does for you: it asks a user for values to those settings, and generates a manifest based on what was entered.
 
-At the time of this writing every job requires a property_blueprint reference to vm_credentials as appears below. This will be removed as a requirement in a future version of Ops Manager.
+At the time of this writing, every job requires a property\_blueprint reference to vm\_credentials as appears below. This will be removed as a requirement in a future version of Ops Manager.
 
-<pre class='terminal'>
+```
 - name: web_server
     resource_label: Web Server
     templates:
@@ -375,7 +373,7 @@ At the time of this writing every job requires a property_blueprint reference to
         ips: (( ips ))
         ips_by_availability_zone: (( ips_by_availability_zone ))
         $ops_manager.ca_certificate: (( $ops_manager.ca_certificate ))
-</pre>
+```
 
 ### name
 String. Required.
@@ -401,7 +399,7 @@ Sets whether the BOSH job should have a static or dynamic IP. Static IPs are set
 Boolean. Required.
 Set the opposite of static_ip. This will eventually be eliminated as a property as it is obviously redundant and unnecessary.
 
-### max_in_flight
+### max\_in\_flight
 Integer. Required.
 A BOSH setting that controls the number of instances of this job that BOSH will deploy in parallel.
 
@@ -419,7 +417,7 @@ Hash. Required.
 The number of default instances for a job along with max, min, odd, and the ability to decrease sizing after deploy constraints.
 
 ### manifest
-Text Snippet (prefaced by pipe symbol: |). Optional.
+Text Snippet, prefaced by pipe symbol: **|**. Optional.
 A BOSH manifest will be created by Ops Manager. The sections of that manifest will include each job, and the properties for that job. These properties come directly from the manifest snippet here, and use a syntax known as "double-parens" which consists of a variable name surrounded by two sets of parentheses.
 
 The double-parens syntax will be evaluated when a user clicks the Apply Changes button in Ops Manager. A manifest is created and the double-parens variables are evaluated. The values, either entered by a user, or generated by Ops Manager, are dynamically inserted in place of the double-parens references.
@@ -432,6 +430,4 @@ Selector snippets are evaluated twice. As you saw in the property_blueprint, the
 
 There are double-parens accessors for a job's name, ram, ephemeral disk, persistent disk, instances, and availability zones in which jobs are placed. See the example of job types above for the example of these accessors.
 
-In addition, Ops Manager supports accessors that are global to the entire installation rather than job specific.  Currently, the only such accessor is **$ops_manager.ca_certificate**, which is the internal SSL CA certificate used to sign all SSL certificates generated by this Ops Manager instance, such as when the user presses a "Generate Self-Signed RSA Certificate" link.
-
-
+In addition, Ops Manager supports accessors that are global to the entire installation rather than job specific. Currently, the only such accessor is `$ops_manager.ca_certificate`, which is the internal SSL CA certificate used to sign all SSL certificates generated by this Ops Manager instance, such as when the user clicks a **Generate Self-Signed RSA Certificat** link.
