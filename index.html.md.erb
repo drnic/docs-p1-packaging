@@ -1,5 +1,5 @@
 ---
-title: Tutorial&#58; Creating a Pivotal Cloud Foundry Product Tile
+title: Creating a Pivotal Cloud Foundry Product Tile
 ---
  Installed software products appear in the <a href="https://network.pivotal.io/products/pivotal-cf">Pivotal Cloud Foundry (PCF)</a> Ops Manager Installation Dashboard as tiles. This tutorial describes the procedure for creating a product tile for use in Ops Manager.
 
@@ -14,10 +14,13 @@ To complete this tutorial, you will need:
 - Some familiarity with [BOSH](https://bosh.io/).
 - The [BOSH CLI](https://bosh.io/docs/bosh-cli.html) installed on your machine.
 
+## Procedures
 Ops Manager automates the BOSH deployment of software products, but introduces additional complexity as well. As a tile author, you should first confirm that your product successfully deploys with BOSH before attempting to deploy it with Ops Manager.
 
 1. [Deploying A PCF Product Using BOSH](./deploying-with-bosh.html) describes the procedure for deploying a release of your software product with BOSH. Confirm that this is successful before proceeding to deploy with Ops Manager.
 
 1. [Deploying Your Product as a Tile in Ops Manager](./deploying-with-ops-man-tile.html) describes the procedure for creating a tile for your product and deploying to Ops Manager.
+
+## Reference Documentation
 
 [Product Template Reference](./product-template-reference.html) provides explanations for the BOSH manifest key-value pairs that are required for an Ops Manager product template.
