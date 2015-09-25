@@ -119,7 +119,6 @@ In this step, we prepare a BOSH manifest for the example product release. The Mi
   </pre>
 
 1. Get your BOSH Director (MicroBOSH) **UUID** by running the following command. You will need to enter this ID in the BOSH manifest in the next step.
-
   <pre class='terminal'>
     $ bosh status
     Config
@@ -137,7 +136,6 @@ In this step, we prepare a BOSH manifest for the example product release. The Mi
 1. In `example-release.yml`, follow the instructions in comments to fill in the details specific to your MicroBOSH deployment.
 
 1. Run the following command to set the deployment.
-
   <pre class='terminal'>
     bosh deployment ./example-release.yml
   </pre>
@@ -190,4 +188,4 @@ In this step, we prepare a BOSH manifest for the example product release. The Mi
 
 ## <a id='cleanup-vpc'></a>Step 5: Terminate VMs
 
-Terminate the instances in your VPC before proceeding to the [Deploying Your Product as a Tile](./deploying-with-ops-man-tile.html) topic.
+Use the AWS EC2 Dashboard to terminate the instances in your VPC before proceeding to [Deploying Your Product as a Tile](./deploying-with-ops-man-tile.html). See [the AWS documentation on terminating instances](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/terminating-instances.html).
